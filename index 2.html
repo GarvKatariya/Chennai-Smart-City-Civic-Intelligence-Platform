@@ -1,0 +1,1937 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Smart City Civic Intelligence Platform - Chennai Municipal Operations Center">
+<title>Chennai Smart City — Civic Intelligence Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg-primary:#0a0e1a;--bg-secondary:#111827;--bg-card:#1a2237;--bg-card-hover:#1e2a45;--border:#2a3555;--text-primary:#e8ecf4;--text-secondary:#8899b8;--text-muted:#5a6a8a;--cyan:#00e5ff;--cyan-glow:rgba(0,229,255,.15);--cyan-dim:#0097a7;--amber:#ffab00;--amber-glow:rgba(255,171,0,.15);--red:#ff3d5a;--green:#00e676;--purple:#b388ff;--blue:#448aff;--orange:#ff6e40;--gradient-cyan:linear-gradient(135deg,#00e5ff,#0097a7);--gradient-amber:linear-gradient(135deg,#ffab00,#ff6d00);--gradient-red:linear-gradient(135deg,#ff3d5a,#d50000);--gradient-green:linear-gradient(135deg,#00e676,#00c853);--shadow-card:0 4px 24px rgba(0,0,0,.4);--shadow-glow:0 0 20px rgba(0,229,255,.2);--radius:12px;--radius-sm:8px;--radius-lg:16px;--sidebar-w:260px;--header-h:60px;--transition:all .3s cubic-bezier(.4,0,.2,1)}
+[data-theme="light"]{--bg-primary:#f0f2f5;--bg-secondary:#ffffff;--bg-card:#ffffff;--bg-card-hover:#f8f9fa;--border:#d1d9e6;--text-primary:#1a2332;--text-secondary:#4a5568;--text-muted:#718096;--shadow-card:0 4px 24px rgba(0,0,0,.08);--shadow-glow:0 0 20px rgba(0,229,255,.1)}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg-primary);color:var(--text-primary);min-height:100vh;overflow-x:hidden;transition:var(--transition)}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 50px,rgba(0,229,255,.02) 50px,rgba(0,229,255,.02) 51px),repeating-linear-gradient(90deg,transparent,transparent 50px,rgba(0,229,255,.02) 50px,rgba(0,229,255,.02) 51px);pointer-events:none;z-index:0}
+h1,h2,h3,h4,h5{font-family:'Orbitron',sans-serif;letter-spacing:.5px}
+a{color:var(--cyan);text-decoration:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg-secondary)}
+::-webkit-scrollbar-thumb{background:var(--cyan-dim);border-radius:3px}
+
+/* ===== AUTH SCREEN ===== */
+.auth-screen{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:var(--bg-primary);background-image:radial-gradient(ellipse at 30% 50%,rgba(0,229,255,.06) 0%,transparent 70%),radial-gradient(ellipse at 70% 50%,rgba(255,171,0,.04) 0%,transparent 70%)}
+.auth-box{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:40px;width:90%;max-width:440px;box-shadow:var(--shadow-card);animation:fadeUp .6s ease-out}
+.auth-box .logo{text-align:center;margin-bottom:28px}
+.auth-box .logo i{font-size:48px;color:var(--cyan);margin-bottom:12px;display:block}
+.auth-box .logo h1{font-size:1.3rem;color:var(--cyan)}
+.auth-box .logo p{color:var(--text-secondary);font-size:.85rem;margin-top:4px}
+.auth-tabs{display:flex;gap:4px;background:var(--bg-secondary);border-radius:var(--radius-sm);padding:4px;margin-bottom:24px}
+.auth-tabs button{flex:1;padding:10px;border:none;border-radius:6px;background:transparent;color:var(--text-secondary);font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;transition:var(--transition)}
+.auth-tabs button.active{background:var(--cyan);color:#000}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:.8rem;color:var(--text-secondary);margin-bottom:6px;font-weight:500}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 14px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:'DM Sans',sans-serif;font-size:.9rem;transition:var(--transition);outline:none}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 3px var(--cyan-glow)}
+.btn{padding:10px 20px;border:none;border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;transition:var(--transition);display:inline-flex;align-items:center;gap:8px;font-size:.9rem}
+.btn-primary{background:var(--gradient-cyan);color:#000;width:100%;justify-content:center;padding:12px}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:var(--shadow-glow)}
+.btn-secondary{background:var(--bg-secondary);color:var(--text-primary);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--cyan)}
+.btn-sm{padding:6px 12px;font-size:.8rem}
+.btn-danger{background:var(--gradient-red);color:#fff}
+.btn-success{background:var(--gradient-green);color:#000}
+.btn-amber{background:var(--gradient-amber);color:#000}
+
+/* ===== LAYOUT ===== */
+.app-container{display:none;min-height:100vh}
+.app-container.active{display:flex}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-w);background:var(--bg-secondary);border-right:1px solid var(--border);z-index:1000;display:flex;flex-direction:column;transition:var(--transition);overflow-y:auto}
+.sidebar-logo{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.sidebar-logo i{font-size:28px;color:var(--cyan)}
+.sidebar-logo h2{font-size:.95rem;color:var(--cyan);line-height:1.2}
+.sidebar-logo span{font-size:.7rem;color:var(--text-muted);display:block;font-family:'DM Sans',sans-serif}
+.sidebar-nav{flex:1;padding:12px}
+.nav-section{margin-bottom:8px}
+.nav-section-title{font-size:.65rem;text-transform:uppercase;color:var(--text-muted);padding:8px 12px 4px;letter-spacing:1.5px;font-family:'Orbitron',sans-serif}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:var(--radius-sm);color:var(--text-secondary);cursor:pointer;transition:var(--transition);font-size:.88rem;position:relative}
+.nav-item:hover{background:var(--bg-card);color:var(--text-primary)}
+.nav-item.active{background:var(--cyan-glow);color:var(--cyan);border-left:3px solid var(--cyan)}
+.nav-item.active::after{content:'';position:absolute;right:12px;width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+.nav-item i{width:20px;text-align:center;font-size:.95rem}
+.nav-item .badge{margin-left:auto;background:var(--red);color:#fff;font-size:.65rem;padding:2px 7px;border-radius:10px;font-weight:600}
+.sidebar-footer{padding:16px;border-top:1px solid var(--border)}
+.user-info{display:flex;align-items:center;gap:10px;padding:8px;border-radius:var(--radius-sm);background:var(--bg-card)}
+.user-avatar{width:36px;height:36px;border-radius:50%;background:var(--gradient-cyan);display:flex;align-items:center;justify-content:center;font-weight:700;color:#000;font-size:.85rem}
+.user-info .name{font-size:.85rem;font-weight:600}
+.user-info .role{font-size:.7rem;color:var(--text-muted)}
+
+/* ===== MAIN CONTENT ===== */
+.main-content{margin-left:var(--sidebar-w);flex:1;min-height:100vh;position:relative;z-index:1}
+.top-bar{height:var(--header-h);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:16px;background:var(--bg-secondary);position:sticky;top:0;z-index:900;backdrop-filter:blur(10px)}
+.top-bar .hamburger{display:none;background:none;border:none;color:var(--text-primary);font-size:1.2rem;cursor:pointer}
+.search-box{flex:1;max-width:480px;position:relative}
+.search-box input{width:100%;padding:8px 14px 8px 36px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-size:.85rem;outline:none;transition:var(--transition)}
+.search-box input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px var(--cyan-glow)}
+.search-box i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:.85rem}
+.search-results{position:absolute;top:100%;left:0;right:0;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);margin-top:4px;max-height:300px;overflow-y:auto;display:none;z-index:999}
+.search-results.active{display:block}
+.search-result-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);transition:var(--transition)}
+.search-result-item:hover{background:var(--bg-card-hover)}
+.top-bar-actions{display:flex;align-items:center;gap:12px;margin-left:auto}
+.top-bar-actions button{background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1rem;position:relative;padding:6px;border-radius:6px;transition:var(--transition)}
+.top-bar-actions button:hover{color:var(--cyan);background:var(--cyan-glow)}
+.notif-dot{position:absolute;top:2px;right:2px;width:8px;height:8px;border-radius:50%;background:var(--red)}
+
+/* ===== PAGE SECTIONS ===== */
+.page-content{padding:24px}
+.page-section{display:none;animation:fadeUp .4s ease-out}
+.page-section.active{display:block}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.section-header h2{font-size:1.3rem;display:flex;align-items:center;gap:10px}
+.section-header h2 i{color:var(--cyan)}
+
+/* ===== CARDS & PANELS ===== */
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;transition:var(--transition);position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gradient-cyan);opacity:0;transition:var(--transition)}
+.card:hover{border-color:rgba(0,229,255,.3);box-shadow:var(--shadow-glow)}
+.card:hover::before{opacity:1}
+.grid{display:grid;gap:16px}
+.grid-2{grid-template-columns:repeat(2,1fr)}
+.grid-3{grid-template-columns:repeat(3,1fr)}
+.grid-4{grid-template-columns:repeat(4,1fr)}
+.grid-5{grid-template-columns:repeat(5,1fr)}
+.grid-6{grid-template-columns:repeat(6,1fr)}
+
+/* ===== KPI CARDS ===== */
+.kpi-card{display:flex;align-items:flex-start;gap:14px}
+.kpi-icon{width:48px;height:48px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+.kpi-icon.cyan{background:var(--cyan-glow);color:var(--cyan)}
+.kpi-icon.amber{background:var(--amber-glow);color:var(--amber)}
+.kpi-icon.red{background:rgba(255,61,90,.15);color:var(--red)}
+.kpi-icon.green{background:rgba(0,230,118,.15);color:var(--green)}
+.kpi-icon.purple{background:rgba(179,136,255,.15);color:var(--purple)}
+.kpi-icon.blue{background:rgba(68,138,255,.15);color:var(--blue)}
+.kpi-data h3{font-size:1.6rem;font-family:'DM Sans',sans-serif;font-weight:700;line-height:1}
+.kpi-data p{font-size:.78rem;color:var(--text-secondary);margin-top:4px}
+.kpi-data .trend{font-size:.72rem;font-weight:600;margin-top:4px;display:inline-flex;align-items:center;gap:4px}
+.kpi-data .trend.up{color:var(--green)}
+.kpi-data .trend.down{color:var(--red)}
+
+/* ===== TABLES ===== */
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius)}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th{background:var(--bg-secondary);color:var(--text-secondary);font-weight:600;text-align:left;padding:12px 14px;font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;white-space:nowrap;border-bottom:1px solid var(--border)}
+td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:hover td{background:var(--bg-card-hover)}
+.status-badge{padding:3px 10px;border-radius:12px;font-size:.72rem;font-weight:600;display:inline-block;white-space:nowrap}
+.status-pending{background:rgba(255,171,0,.15);color:var(--amber)}
+.status-progress{background:rgba(68,138,255,.15);color:var(--blue)}
+.status-resolved{background:rgba(0,230,118,.15);color:var(--green)}
+.status-critical{background:rgba(255,61,90,.15);color:var(--red)}
+.severity-low{color:var(--green)}
+.severity-medium{color:var(--amber)}
+.severity-high{color:var(--orange)}
+.severity-critical{color:var(--red)}
+
+/* ===== MAP ===== */
+.map-container{height:500px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);position:relative}
+.map-container .leaflet-container{height:100%;width:100%;background:var(--bg-primary)}
+.map-controls{position:absolute;top:12px;right:12px;z-index:800;display:flex;flex-direction:column;gap:6px}
+.map-controls button{padding:8px 14px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);cursor:pointer;font-size:.78rem;font-family:'DM Sans',sans-serif;transition:var(--transition);white-space:nowrap}
+.map-controls button.active{background:var(--cyan);color:#000;border-color:var(--cyan)}
+.map-controls button:hover{border-color:var(--cyan)}
+.map-filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.map-filters select,.map-filters input{padding:8px 12px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-size:.82rem;outline:none}
+
+/* ===== CHARTS ===== */
+.chart-card{position:relative}
+.chart-card canvas{max-height:300px}
+
+/* ===== GAUGE ===== */
+.gauge{position:relative;width:120px;height:120px;margin:0 auto}
+.gauge svg{transform:rotate(-90deg)}
+.gauge-value{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:1.2rem;font-weight:700}
+.gauge-label{font-size:.65rem;color:var(--text-secondary);font-family:'DM Sans',sans-serif;margin-top:2px}
+
+/* ===== SENSOR CARDS ===== */
+.sensor-card{text-align:center;padding:16px}
+.sensor-card .sensor-value{font-family:'Orbitron',sans-serif;font-size:1.8rem;font-weight:700;margin:8px 0}
+.sensor-card .sensor-label{font-size:.75rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px}
+.sensor-card .sensor-status{font-size:.7rem;padding:3px 10px;border-radius:12px;display:inline-block;margin-top:6px;font-weight:600}
+.sensor-card.good{border-top:3px solid var(--green)}.sensor-card.good .sensor-value{color:var(--green)}
+.sensor-card.moderate{border-top:3px solid var(--amber)}.sensor-card.moderate .sensor-value{color:var(--amber)}
+.sensor-card.unhealthy{border-top:3px solid var(--red)}.sensor-card.unhealthy .sensor-value{color:var(--red)}
+.pulse{animation:pulse 2s infinite}
+
+/* ===== NOTIFICATION TOAST ===== */
+.toast-container{position:fixed;top:80px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{padding:14px 20px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-card);display:flex;align-items:center;gap:10px;font-size:.85rem;animation:slideIn .3s ease-out;min-width:300px;max-width:440px}
+.toast.success{border-left:4px solid var(--green)}
+.toast.error{border-left:4px solid var(--red)}
+.toast.info{border-left:4px solid var(--cyan)}
+.toast i{font-size:1.1rem}
+.toast.success i{color:var(--green)}
+.toast.error i{color:var(--red)}
+.toast.info i{color:var(--cyan)}
+
+/* ===== MODAL ===== */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:8000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.active{display:flex}
+.modal{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;width:90%;max-width:600px;max-height:85vh;overflow-y:auto;animation:fadeUp .3s ease-out}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.modal-header h3{font-size:1.1rem;display:flex;align-items:center;gap:8px}
+.modal-close{background:none;border:none;color:var(--text-secondary);font-size:1.2rem;cursor:pointer}
+
+/* ===== COMPLAINT TIMELINE ===== */
+.timeline{position:relative;padding-left:28px}
+.timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:var(--border)}
+.timeline-item{position:relative;margin-bottom:16px;padding-left:20px}
+.timeline-item::before{content:'';position:absolute;left:-22px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--border);border:2px solid var(--bg-card)}
+.timeline-item.completed::before{background:var(--green)}
+.timeline-item.current::before{background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+.timeline-item .tl-title{font-weight:600;font-size:.85rem}
+.timeline-item .tl-time{font-size:.72rem;color:var(--text-muted)}
+
+/* ===== SDG BADGES ===== */
+.sdg-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:4px;font-size:.68rem;font-weight:700;color:#fff}
+.sdg-6{background:#26bde2}.sdg-7{background:#fcc30b;color:#000}.sdg-9{background:#f36d25}.sdg-11{background:#f99d26}
+.sdg-13{background:#3f7e44}.sdg-3{background:#4c9f38}.sdg-16{background:#00689d}.sdg-12{background:#bf8b2e}
+.sdg-15{background:#56c02b}.sdg-14{background:#0a97d9}
+
+/* ===== STAR RATING ===== */
+.star-rating{display:flex;gap:4px}.star-rating i{color:var(--text-muted);cursor:pointer;font-size:1.1rem;transition:var(--transition)}
+.star-rating i.active,.star-rating i:hover{color:var(--amber)}
+
+/* ===== ALERT BANNER ===== */
+.alert-banner{background:linear-gradient(135deg,rgba(255,61,90,.15),rgba(255,61,90,.05));border:1px solid rgba(255,61,90,.3);border-radius:var(--radius-sm);padding:12px 20px;display:flex;align-items:center;gap:12px;margin-bottom:16px;animation:pulse 2s infinite}
+.alert-banner i{color:var(--red);font-size:1.2rem}
+.alert-banner p{font-size:.85rem}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(100px)}to{opacity:1;transform:translateX(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes glow{0%,100%{box-shadow:0 0 5px var(--cyan)}50%{box-shadow:0 0 20px var(--cyan),0 0 40px rgba(0,229,255,.4)}}
+.loading-spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--cyan);border-radius:50%;animation:spin .8s linear infinite;margin:20px auto}
+.skeleton{background:linear-gradient(90deg,var(--bg-card) 25%,var(--bg-card-hover) 50%,var(--bg-card) 75%);background-size:200% 100%;animation:skeleton 1.5s infinite;border-radius:var(--radius-sm);height:20px;margin-bottom:8px}
+@keyframes skeleton{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ===== INBOX ===== */
+.inbox-item{display:flex;gap:12px;padding:14px;border-bottom:1px solid var(--border);cursor:pointer;transition:var(--transition)}
+.inbox-item:hover{background:var(--bg-card-hover)}
+.inbox-item.unread{border-left:3px solid var(--cyan)}
+.inbox-item.unread .inbox-subject{font-weight:700}
+.inbox-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.85rem}
+.inbox-subject{font-size:.85rem;margin-bottom:2px}
+.inbox-preview{font-size:.75rem;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:400px}
+.inbox-time{font-size:.68rem;color:var(--text-muted);margin-left:auto;white-space:nowrap}
+
+/* ===== PROGRESS BAR ===== */
+.progress-bar{height:8px;background:var(--bg-secondary);border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;border-radius:4px;transition:width .6s ease}
+
+/* ===== SLIDER ===== */
+input[type="range"]{-webkit-appearance:none;width:100%;height:6px;border-radius:3px;background:var(--bg-secondary);outline:none}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--cyan);cursor:pointer;box-shadow:0 0 6px rgba(0,229,255,.4)}
+
+/* ===== TABS ===== */
+.tabs{display:flex;gap:4px;background:var(--bg-secondary);border-radius:var(--radius-sm);padding:4px;margin-bottom:20px;flex-wrap:wrap}
+.tab-btn{padding:8px 16px;border:none;border-radius:6px;background:transparent;color:var(--text-secondary);font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;transition:var(--transition);font-size:.82rem;white-space:nowrap}
+.tab-btn.active{background:var(--cyan);color:#000;font-weight:600}
+.tab-btn:hover:not(.active){background:var(--bg-card)}
+.tab-content{display:none}.tab-content.active{display:block;animation:fadeUp .3s ease-out}
+
+/* ===== POLICY SIM ===== */
+.sim-result{text-align:center;padding:16px;border-radius:var(--radius-sm);background:var(--bg-secondary)}
+.sim-result .sim-value{font-family:'Orbitron',sans-serif;font-size:1.5rem;font-weight:700;margin:8px 0}
+.sim-result .sim-label{font-size:.72rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px}
+
+/* ===== MOBILE ===== */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg-secondary);border-top:1px solid var(--border);z-index:1000;padding:4px 0}
+.mobile-nav-items{display:flex;justify-content:space-around}
+.mob-nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;color:var(--text-muted);font-size:.62rem;cursor:pointer;transition:var(--transition);position:relative}
+.mob-nav-item.active{color:var(--cyan)}
+.mob-nav-item i{font-size:1.1rem}
+
+@media(max-width:1200px){.grid-6{grid-template-columns:repeat(3,1fr)}.grid-5{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:900px){
+  .grid-4{grid-template-columns:repeat(2,1fr)}.grid-3{grid-template-columns:repeat(2,1fr)}.grid-5{grid-template-columns:repeat(2,1fr)}.grid-6{grid-template-columns:repeat(2,1fr)}
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main-content{margin-left:0}
+  .top-bar .hamburger{display:block}
+  .mobile-nav{display:block}
+  .page-content{padding:16px;padding-bottom:80px}
+  .map-container{height:350px}
+}
+@media(max-width:600px){
+  .grid-2,.grid-3,.grid-4,.grid-5,.grid-6{grid-template-columns:1fr}
+  .section-header{flex-direction:column;align-items:flex-start}
+  .map-filters{flex-direction:column}
+  .auth-box{padding:24px}
+  .kpi-data h3{font-size:1.3rem}
+}
+
+/* ===== MISC ===== */
+.flex{display:flex}.flex-wrap{flex-wrap:wrap}.items-center{align-items:center}.justify-between{justify-content:space-between}
+.gap-2{gap:8px}.gap-3{gap:12px}.gap-4{gap:16px}.gap-5{gap:20px}
+.mb-2{margin-bottom:8px}.mb-3{margin-bottom:12px}.mb-4{margin-bottom:16px}.mb-5{margin-bottom:20px}
+.mt-3{margin-top:12px}.mt-4{margin-top:16px}
+.text-cyan{color:var(--cyan)}.text-amber{color:var(--amber)}.text-red{color:var(--red)}.text-green{color:var(--green)}
+.text-sm{font-size:.82rem}.text-xs{font-size:.72rem}.text-muted{color:var(--text-muted)}
+.font-bold{font-weight:700}
+.w-full{width:100%}
+.overflow-hidden{overflow:hidden}
+.text-center{text-align:center}
+.hidden{display:none!important}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999}
+.sidebar-overlay.active{display:block}
+.leaflet-popup-content-wrapper{background:var(--bg-card)!important;color:var(--text-primary)!important;border:1px solid var(--border)!important;border-radius:var(--radius-sm)!important;box-shadow:var(--shadow-card)!important}
+.leaflet-popup-tip{background:var(--bg-card)!important}
+.leaflet-popup-content{font-family:'DM Sans',sans-serif!important;font-size:.82rem!important;margin:12px!important}
+.complaint-popup h4{font-family:'Orbitron',sans-serif;font-size:.85rem;margin-bottom:6px;color:var(--cyan)}
+.complaint-popup p{margin:3px 0;font-size:.78rem}
+</style>
+</head>
+<body>
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ===== AUTH SCREEN ===== -->
+<div class="auth-screen" id="authScreen">
+<div class="auth-box">
+  <div class="logo">
+    <i class="fas fa-city"></i>
+    <h1>CHENNAI SMART CITY</h1>
+    <p>Civic Intelligence Platform v2.0</p>
+  </div>
+  <div class="auth-tabs">
+    <button class="active" onclick="switchAuthTab('login')" id="authLoginTab">Login</button>
+    <button onclick="switchAuthTab('signup')" id="authSignupTab">Sign Up</button>
+  </div>
+  <form id="loginForm" onsubmit="handleLogin(event)">
+    <div class="form-group">
+      <label for="loginEmail">Email Address</label>
+      <input type="email" id="loginEmail" placeholder="you@email.com" required aria-label="Email">
+    </div>
+    <div class="form-group">
+      <label for="loginPassword">Password</label>
+      <input type="password" id="loginPassword" placeholder="Enter password" required aria-label="Password">
+    </div>
+    <button type="submit" class="btn btn-primary"><i class="fas fa-sign-in-alt"></i> Login</button>
+    <p class="text-xs text-muted mt-3 text-center">Admin: admin@smartcity.gov / admin123</p>
+  </form>
+  <form id="signupForm" style="display:none" onsubmit="handleSignup(event)">
+    <div class="form-group">
+      <label for="signupName">Full Name</label>
+      <input type="text" id="signupName" placeholder="Your full name" required aria-label="Full name">
+    </div>
+    <div class="form-group">
+      <label for="signupEmail">Email Address</label>
+      <input type="email" id="signupEmail" placeholder="you@email.com" required aria-label="Email">
+    </div>
+    <div class="form-group">
+      <label for="signupPhone">Phone Number</label>
+      <input type="tel" id="signupPhone" placeholder="+91 XXXXX XXXXX" required aria-label="Phone">
+    </div>
+    <div class="form-group">
+      <label for="signupZone">Ward / Zone</label>
+      <select id="signupZone" required aria-label="Zone">
+        <option value="">Select Zone</option>
+        <option value="North">North (Thiruvottiyur, Manali)</option>
+        <option value="South">South (Adyar, Velachery)</option>
+        <option value="East">East (Sholinganallur, OMR)</option>
+        <option value="West">West (Ambattur, Avadi)</option>
+        <option value="Central">Central (T.Nagar, Egmore)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="signupPassword">Password</label>
+      <input type="password" id="signupPassword" placeholder="Create password" required minlength="6" aria-label="Password">
+    </div>
+    <button type="submit" class="btn btn-primary"><i class="fas fa-user-plus"></i> Create Account</button>
+  </form>
+</div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div class="app-container" id="appContainer">
+
+<!-- SIDEBAR OVERLAY (Mobile) -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar" role="navigation" aria-label="Main Navigation">
+  <div class="sidebar-logo">
+    <i class="fas fa-city"></i>
+    <div>
+      <h2>SMART CITY</h2>
+      <span>Chennai Operations</span>
+    </div>
+  </div>
+  <nav class="sidebar-nav" id="sidebarNav">
+    <!-- Admin Nav -->
+    <div class="nav-section admin-nav">
+      <div class="nav-section-title">Overview</div>
+      <div class="nav-item active" data-page="dashboard" onclick="navigateTo('dashboard')"><i class="fas fa-th-large"></i> Dashboard</div>
+      <div class="nav-item" data-page="map" onclick="navigateTo('map')"><i class="fas fa-map-marked-alt"></i> City Map</div>
+    </div>
+    <div class="nav-section admin-nav">
+      <div class="nav-section-title">Operations</div>
+      <div class="nav-item" data-page="complaints" onclick="navigateTo('complaints')"><i class="fas fa-clipboard-list"></i> Complaints <span class="badge" id="pendingBadge">0</span></div>
+      <div class="nav-item" data-page="sensors" onclick="navigateTo('sensors')"><i class="fas fa-broadcast-tower"></i> Live Sensors</div>
+      <div class="nav-item" data-page="zones" onclick="navigateTo('zones')"><i class="fas fa-vector-square"></i> Zone Analysis</div>
+      <div class="nav-item" data-page="misi" onclick="navigateTo('misi')"><i class="fas fa-heartbeat"></i> Stress Index</div>
+    </div>
+    <div class="nav-section admin-nav">
+      <div class="nav-section-title">Planning</div>
+      <div class="nav-item" data-page="policy" onclick="navigateTo('policy')"><i class="fas fa-flask"></i> Policy Sim</div>
+      <div class="nav-item" data-page="resources" onclick="navigateTo('resources')"><i class="fas fa-cogs"></i> Resources</div>
+    </div>
+    <div class="nav-section admin-nav">
+      <div class="nav-section-title">Admin</div>
+      <div class="nav-item" data-page="admin-notif" onclick="navigateTo('admin-notif')"><i class="fas fa-bell"></i> Notifications <span class="badge" id="adminNotifBadge">0</span></div>
+    </div>
+    <!-- Citizen Nav -->
+    <div class="nav-section citizen-nav" style="display:none">
+      <div class="nav-section-title">My Services</div>
+      <div class="nav-item active" data-page="citizen-dashboard" onclick="navigateTo('citizen-dashboard')"><i class="fas fa-th-large"></i> City Status</div>
+      <div class="nav-item" data-page="citizen-complaint" onclick="navigateTo('citizen-complaint')"><i class="fas fa-plus-circle"></i> File Complaint</div>
+      <div class="nav-item" data-page="citizen-history" onclick="navigateTo('citizen-history')"><i class="fas fa-history"></i> My Complaints</div>
+      <div class="nav-item" data-page="citizen-inbox" onclick="navigateTo('citizen-inbox')"><i class="fas fa-envelope"></i> Inbox <span class="badge" id="citizenInboxBadge">0</span></div>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <div class="user-avatar" id="userAvatar">A</div>
+      <div>
+        <div class="name" id="userName">Admin</div>
+        <div class="role" id="userRole">Administrator</div>
+      </div>
+    </div>
+    <button class="btn btn-secondary btn-sm w-full mt-3" onclick="handleLogout()" style="justify-content:center"><i class="fas fa-sign-out-alt"></i> Logout</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main-content">
+  <header class="top-bar">
+    <button class="hamburger" onclick="toggleSidebar()" aria-label="Toggle menu"><i class="fas fa-bars"></i></button>
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input type="text" placeholder="Search complaints by ID, keyword, location..." id="globalSearch" oninput="handleSearch(this.value)" aria-label="Global search">
+      <div class="search-results" id="searchResults"></div>
+    </div>
+    <div class="top-bar-actions">
+      <button onclick="toggleTheme()" aria-label="Toggle dark/light mode" title="Toggle Theme"><i class="fas fa-moon" id="themeIcon"></i></button>
+      <button onclick="navigateTo(currentUser?.role==='admin'?'admin-notif':'citizen-inbox')" aria-label="Notifications" title="Notifications">
+        <i class="fas fa-bell"></i><span class="notif-dot" id="topNotifDot" style="display:none"></span>
+      </button>
+      <button onclick="exportData()" aria-label="Export data" title="Export CSV" class="admin-only"><i class="fas fa-download"></i></button>
+    </div>
+  </header>
+
+  <div class="page-content">
+    <!-- ALERT BANNER (shows when zones > 75 stress) -->
+    <div class="alert-banner" id="alertBanner" style="display:none">
+      <i class="fas fa-exclamation-triangle"></i>
+      <p id="alertBannerText">⚠ High stress alert: Multiple zones exceeding critical threshold!</p>
+    </div>
+
+    <!-- ========== ADMIN: DASHBOARD ========== -->
+    <section class="page-section active" id="page-dashboard">
+      <div class="section-header"><h2><i class="fas fa-th-large"></i> Operations Dashboard</h2><span class="text-xs text-muted" id="dashboardTime"></span></div>
+      <div class="grid grid-6 mb-5" id="kpiGrid"><!-- KPI cards injected --></div>
+      <div class="grid grid-2 mb-4">
+        <div class="card chart-card"><h4 class="mb-3 text-sm">Complaint Trends (30 Days)</h4><canvas id="trendChart"></canvas></div>
+        <div class="card chart-card"><h4 class="mb-3 text-sm">Category Breakdown</h4><canvas id="categoryChart"></canvas></div>
+      </div>
+      <div class="grid grid-2 mb-4">
+        <div class="card chart-card"><h4 class="mb-3 text-sm">Zone-wise Complaints</h4><canvas id="zoneBarChart"></canvas></div>
+        <div class="card chart-card"><h4 class="mb-3 text-sm">Resolution Rate Over Time</h4><canvas id="resolutionChart"></canvas></div>
+      </div>
+      <div class="card mb-4">
+        <h4 class="mb-3 text-sm">Recent Complaints</h4>
+        <div class="table-wrap"><table id="recentTable"><thead><tr><th>ID</th><th>Title</th><th>Category</th><th>Zone</th><th>Severity</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
+      </div>
+      <div class="card">
+        <h4 class="mb-3 text-sm">Department Workload</h4>
+        <div class="table-wrap"><table id="deptTable"><thead><tr><th>Department</th><th>Open Tickets</th><th>Closed Today</th><th>Staff</th><th>Capacity</th><th>Efficiency</th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </section>
+
+    <!-- ========== MAP ========== -->
+    <section class="page-section" id="page-map">
+      <div class="section-header"><h2><i class="fas fa-map-marked-alt"></i> City Map & Complaints</h2></div>
+      <div class="map-filters">
+        <select id="filterCategory" onchange="applyMapFilters()" aria-label="Filter category"><option value="">All Categories</option></select>
+        <select id="filterSeverity" onchange="applyMapFilters()" aria-label="Filter severity"><option value="">All Severities</option><option>Low</option><option>Medium</option><option>High</option><option>Critical</option></select>
+        <select id="filterStatus" onchange="applyMapFilters()" aria-label="Filter status"><option value="">All Status</option><option>Pending</option><option>In Progress</option><option>Resolved</option></select>
+        <select id="filterZone" onchange="applyMapFilters()" aria-label="Filter zone"><option value="">All Zones</option><option>North</option><option>South</option><option>East</option><option>West</option><option>Central</option></select>
+        <input type="date" id="filterDateFrom" onchange="applyMapFilters()" aria-label="From date">
+        <input type="date" id="filterDateTo" onchange="applyMapFilters()" aria-label="To date">
+      </div>
+      <div class="map-container">
+        <div id="cityMap" style="height:100%;width:100%"></div>
+        <div class="map-controls">
+          <button class="active" onclick="setMapView('markers',this)" aria-label="Markers view">Markers</button>
+          <button onclick="setMapView('cluster',this)" aria-label="Cluster view">Clusters</button>
+          <button onclick="setMapView('heat',this)" aria-label="Heatmap view">Heatmap</button>
+          <button onclick="setMapView('zones',this)" aria-label="Zone overlay">Zones</button>
+        </div>
+      </div>
+      <div class="card mt-4">
+        <h4 class="mb-3 text-sm">Heatmap Intensity</h4>
+        <div class="flex gap-3 items-center flex-wrap">
+          <label class="text-xs"><input type="radio" name="heatMode" value="count" checked onchange="updateHeatmap()"> By Count</label>
+          <label class="text-xs"><input type="radio" name="heatMode" value="severity" onchange="updateHeatmap()"> By Severity</label>
+          <label class="text-xs"><input type="radio" name="heatMode" value="unresolved" onchange="updateHeatmap()"> By Unresolved</label>
+          <div style="display:flex;align-items:center;gap:4px;margin-left:auto">
+            <span class="text-xs" style="color:#448aff">Low</span>
+            <div style="width:120px;height:10px;border-radius:5px;background:linear-gradient(90deg,#448aff,#ffeb3b,#ff3d5a)"></div>
+            <span class="text-xs" style="color:#ff3d5a">High</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== COMPLAINTS MANAGEMENT ========== -->
+    <section class="page-section" id="page-complaints">
+      <div class="section-header"><h2><i class="fas fa-clipboard-list"></i> Complaint Management</h2>
+        <div class="flex gap-2">
+          <select id="complaintSort" onchange="renderComplaintsTable()" class="form-group" style="margin:0" aria-label="Sort complaints">
+            <option value="date-desc">Newest First</option><option value="date-asc">Oldest First</option><option value="severity">By Severity</option><option value="status">By Status</option>
+          </select>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="filterComplaintTab('all',this)">All</button>
+        <button class="tab-btn" onclick="filterComplaintTab('Pending',this)">Pending</button>
+        <button class="tab-btn" onclick="filterComplaintTab('In Progress',this)">In Progress</button>
+        <button class="tab-btn" onclick="filterComplaintTab('Resolved',this)">Resolved</button>
+        <button class="tab-btn" onclick="filterComplaintTab('sla',this)">SLA Breach <i class="fas fa-exclamation-circle text-red"></i></button>
+      </div>
+      <div class="card"><div class="table-wrap"><table id="complaintsFullTable"><thead><tr><th>ID</th><th>Title</th><th>Category</th><th>SDG</th><th>Zone</th><th>Severity</th><th>Status</th><th>SLA</th><th>Date</th><th>Actions</th></tr></thead><tbody></tbody></table></div></div>
+    </section>
+
+    <!-- ========== LIVE SENSORS ========== -->
+    <section class="page-section" id="page-sensors">
+      <div class="section-header"><h2><i class="fas fa-broadcast-tower"></i> Live Sensor Dashboard</h2><span class="text-xs pulse" style="color:var(--green)"><i class="fas fa-circle" style="font-size:8px"></i> Live Data</span></div>
+      <div class="grid grid-5 mb-4" id="sensorGrid"><!-- sensor cards injected --></div>
+      <div class="card">
+        <h4 class="mb-3 text-sm"><i class="fas fa-exclamation-triangle text-amber"></i> Sensor Alert Log</h4>
+        <div id="sensorAlertLog" style="max-height:250px;overflow-y:auto"><!-- alert items --></div>
+      </div>
+    </section>
+
+    <!-- ========== ZONE ANALYSIS ========== -->
+    <section class="page-section" id="page-zones">
+      <div class="section-header"><h2><i class="fas fa-vector-square"></i> Zone-Based Analysis</h2></div>
+      <div class="grid grid-5 mb-4" id="zoneCards"><!-- zone cards --></div>
+      <div class="grid grid-2 mb-4">
+        <div class="card chart-card"><h4 class="mb-3 text-sm">Zone Comparison Radar</h4><canvas id="zoneRadarChart"></canvas></div>
+        <div class="card" id="zoneDetailPanel"><h4 class="mb-3 text-sm">Zone Detail</h4><p class="text-sm text-muted">Click a zone card above to view detailed stats</p></div>
+      </div>
+    </section>
+
+    <!-- ========== MISI ========== -->
+    <section class="page-section" id="page-misi">
+      <div class="section-header"><h2><i class="fas fa-heartbeat"></i> Municipal Infrastructure Stress Index</h2></div>
+      <div class="card mb-4 text-center" style="padding:32px">
+        <p class="text-xs text-muted mb-2" style="text-transform:uppercase;letter-spacing:2px">City-Wide MISI Score</p>
+        <div class="gauge" style="width:160px;height:160px;margin:0 auto"><svg width="160" height="160" viewBox="0 0 160 160"><circle cx="80" cy="80" r="70" fill="none" stroke="var(--border)" stroke-width="12"/><circle id="misiMainArc" cx="80" cy="80" r="70" fill="none" stroke="var(--cyan)" stroke-width="12" stroke-dasharray="440" stroke-dashoffset="220" stroke-linecap="round"/></svg><div class="gauge-value"><span id="misiMainValue">0</span><span class="gauge-label">out of 100</span></div></div>
+      </div>
+      <div class="grid grid-5 mb-4" id="misiZoneGauges"><!-- zone gauges --></div>
+      <div class="grid grid-2 mb-4">
+        <div class="card"><h4 class="mb-3 text-sm">Stress Factor Breakdown</h4><div class="table-wrap"><table id="misiBreakdownTable"><thead><tr><th>Zone</th><th>Complaints</th><th>Severity</th><th>Resolution</th><th>Sensors</th><th>Infra Age</th><th>MISI</th></tr></thead><tbody></tbody></table></div></div>
+        <div class="card chart-card"><h4 class="mb-3 text-sm">MISI Trend (12 Months)</h4><canvas id="misiTrendChart"></canvas></div>
+      </div>
+    </section>
+
+    <!-- ========== POLICY SIMULATION ========== -->
+    <section class="page-section" id="page-policy">
+      <div class="section-header"><h2><i class="fas fa-flask"></i> Policy Simulation Engine</h2></div>
+      <div class="grid grid-2">
+        <div class="card">
+          <h4 class="mb-4 text-sm">Configure Simulation</h4>
+          <div class="form-group"><label>Target Zone</label><select id="simZone" aria-label="Simulation zone"><option value="North">North</option><option value="South">South</option><option value="East">East</option><option value="West">West</option><option value="Central">Central</option></select></div>
+          <div class="form-group"><label>Problem Category</label><select id="simCategory" aria-label="Problem category"><option>Roads & Infrastructure</option><option>Water Supply</option><option>Sanitation</option><option>Electricity</option><option>Public Safety</option><option>Air Quality</option><option>Waste Management</option><option>Traffic</option></select></div>
+          <div class="form-group"><label>Policy Intervention</label><select id="simPolicy" aria-label="Policy"><option>Road repair blitz (3-month campaign)</option><option>Smart sensor deployment</option><option>Community awareness drive</option><option>Increased garbage collection frequency</option><option>Street lighting upgrade</option><option>Water pipeline replacement</option><option>Traffic signal optimization</option><option>Green cover expansion</option></select></div>
+          <div class="form-group"><label>Budget: <span id="budgetLabel">₹50L</span></label><input type="range" id="simBudget" min="10" max="1000" value="50" oninput="document.getElementById('budgetLabel').textContent=(this.value>=100?'₹'+(this.value/100).toFixed(1)+'Cr':'₹'+this.value+'L')" aria-label="Budget"></div>
+          <div class="form-group"><label>Timeline: <span id="timelineLabel">6 months</span></label><input type="range" id="simTimeline" min="1" max="24" value="6" oninput="document.getElementById('timelineLabel').textContent=this.value+' months'" aria-label="Timeline"></div>
+          <div class="form-group"><label>Staff Multiplier: <span id="staffLabel">1.0x</span></label><input type="range" id="simStaff" min="10" max="30" value="10" oninput="document.getElementById('staffLabel').textContent=(this.value/10).toFixed(1)+'x'" aria-label="Staff Multiplier"></div>
+          <button class="btn btn-primary mt-3" onclick="runSimulation()"><i class="fas fa-play"></i> Run Simulation</button>
+        </div>
+        <div class="card" id="simResults">
+          <h4 class="mb-4 text-sm">Simulation Results</h4>
+          <div class="text-center text-muted" id="simPlaceholder"><i class="fas fa-flask" style="font-size:48px;opacity:.2;display:block;margin-bottom:12px"></i><p>Configure parameters and run a simulation to see projected outcomes.</p></div>
+          <div id="simOutput" style="display:none"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== RESOURCES ========== -->
+    <section class="page-section" id="page-resources">
+      <div class="section-header"><h2><i class="fas fa-cogs"></i> Resource Utilization</h2></div>
+      <div class="card mb-4">
+        <h4 class="mb-3 text-sm">Budget Reallocation</h4>
+        <p class="text-xs text-muted mb-3">Adjust department budgets and observe projected impact on resolution times</p>
+        <div id="budgetSliders"><!-- budget sliders --></div>
+        <button class="btn btn-primary btn-sm mt-3" onclick="applyBudgetChanges()"><i class="fas fa-check"></i> Apply Changes</button>
+      </div>
+      <div class="grid grid-4" id="resourceCards"><!-- department cards --></div>
+    </section>
+
+    <!-- ========== ADMIN NOTIFICATIONS ========== -->
+    <section class="page-section" id="page-admin-notif">
+      <div class="section-header"><h2><i class="fas fa-bell"></i> Admin Notification Center</h2></div>
+      <div class="card" id="adminNotifList"><!-- notification items --></div>
+    </section>
+
+    <!-- ========== CITIZEN: DASHBOARD ========== -->
+    <section class="page-section" id="page-citizen-dashboard">
+      <div class="section-header"><h2><i class="fas fa-th-large"></i> City Status Dashboard</h2></div>
+      <div class="grid grid-4 mb-4" id="citizenKPIs"><!-- citizen KPIs --></div>
+      <div class="grid grid-2 mb-4">
+        <div class="card chart-card"><h4 class="mb-3 text-sm">City Complaint Trends</h4><canvas id="citizenTrendChart"></canvas></div>
+        <div class="card chart-card"><h4 class="mb-3 text-sm">Category Distribution</h4><canvas id="citizenCategoryChart"></canvas></div>
+      </div>
+      <div class="card"><h4 class="mb-3 text-sm">Recent Public Complaints</h4><div class="table-wrap"><table id="publicComplaintsTable"><thead><tr><th>ID</th><th>Title</th><th>Category</th><th>Zone</th><th>Status</th><th>Date</th></tr></thead><tbody></tbody></table></div></div>
+    </section>
+
+    <!-- ========== CITIZEN: FILE COMPLAINT ========== -->
+    <section class="page-section" id="page-citizen-complaint">
+      <div class="section-header"><h2><i class="fas fa-plus-circle"></i> File a Complaint</h2></div>
+      <div class="grid grid-2">
+        <div class="card">
+          <h4 class="mb-4 text-sm">Complaint Details</h4>
+          <form id="complaintForm" onsubmit="submitComplaint(event)">
+            <div class="form-group"><label>Category</label><select id="compCategory" required aria-label="Category"><option value="">Select Category</option><option>Roads & Infrastructure</option><option>Water Supply</option><option>Sanitation</option><option>Electricity</option><option>Public Safety</option><option>Air Quality</option><option>Noise Pollution</option><option>Green Spaces</option><option>Waste Management</option><option>Traffic</option><option>Public Health</option><option>Digital Services</option></select></div>
+            <div class="form-group"><label>Title</label><input type="text" id="compTitle" placeholder="Brief description of the issue" required aria-label="Complaint title"></div>
+            <div class="form-group"><label>Description</label><textarea id="compDesc" rows="3" placeholder="Detailed complaint description..." required aria-label="Description"></textarea></div>
+            <div class="form-group"><label>Severity</label><select id="compSeverity" required aria-label="Severity"><option>Low</option><option>Medium</option><option selected>High</option><option>Critical</option></select></div>
+            <div class="form-group"><label>Photo (Optional)</label><input type="file" id="compPhoto" accept="image/*" onchange="previewPhoto(this)" aria-label="Upload photo"><div id="photoPreview" class="mt-3"></div></div>
+            <div class="form-group flex items-center gap-2"><input type="checkbox" id="compAnon"><label for="compAnon" style="margin:0;cursor:pointer">Submit anonymously</label></div>
+            <p class="text-xs text-muted mb-3"><i class="fas fa-map-pin"></i> Click on the map to set complaint location</p>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Submit Complaint</button>
+          </form>
+        </div>
+        <div class="card">
+          <h4 class="mb-3 text-sm">Select Location on Map</h4>
+          <div class="map-container" style="height:400px"><div id="complaintMap" style="height:100%;width:100%"></div></div>
+          <p class="text-xs text-muted mt-3" id="selectedLocation">No location selected — click on the map</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== CITIZEN: COMPLAINT HISTORY ========== -->
+    <section class="page-section" id="page-citizen-history">
+      <div class="section-header"><h2><i class="fas fa-history"></i> My Complaint History</h2></div>
+      <div class="card"><div class="table-wrap"><table id="myComplaintsTable"><thead><tr><th>ID</th><th>Title</th><th>Category</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead><tbody></tbody></table></div></div>
+    </section>
+
+    <!-- ========== CITIZEN: INBOX ========== -->
+    <section class="page-section" id="page-citizen-inbox">
+      <div class="section-header"><h2><i class="fas fa-envelope"></i> Notification Inbox</h2></div>
+      <div class="card" id="citizenInboxList"><!-- inbox items --></div>
+    </section>
+  </div>
+</main>
+
+<!-- MOBILE NAV -->
+<nav class="mobile-nav" id="mobileNav" aria-label="Mobile Navigation">
+  <div class="mobile-nav-items" id="mobileNavItems"><!-- injected --></div>
+</nav>
+</div>
+
+<!-- ===== COMPLAINT DETAIL MODAL ===== -->
+<div class="modal-overlay" id="complaintModal">
+<div class="modal">
+  <div class="modal-header"><h3><i class="fas fa-clipboard-list text-cyan"></i> Complaint Details</h3><button class="modal-close" onclick="closeModal('complaintModal')" aria-label="Close modal"><i class="fas fa-times"></i></button></div>
+  <div id="complaintModalBody"><!-- injected --></div>
+</div>
+</div>
+
+<!-- ===== AI ANALYSIS MODAL ===== -->
+<div class="modal-overlay" id="aiModal">
+<div class="modal" style="max-width:500px;text-align:center">
+  <div id="aiModalBody">
+    <i class="fas fa-brain text-cyan" style="font-size:48px;margin-bottom:16px"></i>
+    <h3 class="mb-3">AI Analysis in Progress</h3>
+    <div class="loading-spinner"></div>
+    <p class="text-sm text-muted mt-3" id="aiStatusText">Analyzing complaint category...</p>
+  </div>
+</div>
+</div>
+
+<!-- ===== FEEDBACK MODAL ===== -->
+<div class="modal-overlay" id="feedbackModal">
+<div class="modal" style="max-width:420px">
+  <div class="modal-header"><h3><i class="fas fa-star text-amber"></i> Rate Service</h3><button class="modal-close" onclick="closeModal('feedbackModal')"><i class="fas fa-times"></i></button></div>
+  <div id="feedbackModalBody">
+    <p class="text-sm mb-3">How satisfied are you with the resolution of your complaint?</p>
+    <div class="star-rating mb-4" id="feedbackStars">
+      <i class="fas fa-star" data-val="1" onclick="setRating(1)"></i>
+      <i class="fas fa-star" data-val="2" onclick="setRating(2)"></i>
+      <i class="fas fa-star" data-val="3" onclick="setRating(3)"></i>
+      <i class="fas fa-star" data-val="4" onclick="setRating(4)"></i>
+      <i class="fas fa-star" data-val="5" onclick="setRating(5)"></i>
+    </div>
+    <div class="form-group"><label>Comment (Optional)</label><textarea id="feedbackComment" rows="2" placeholder="Any additional feedback..."></textarea></div>
+    <button class="btn btn-primary" onclick="submitFeedback()"><i class="fas fa-check"></i> Submit Feedback</button>
+  </div>
+</div>
+</div>
+<script>
+/* ============================================================
+   SMART CITY CIVIC INTELLIGENCE PLATFORM — JavaScript Engine
+   ============================================================ */
+
+// ===== CONSTANTS =====
+const ZONES = ['North','South','East','West','Central'];
+const ZONE_AREAS = {North:'Thiruvottiyur, Manali',South:'Adyar, Velachery',East:'Sholinganallur, OMR',West:'Ambattur, Avadi',Central:'T.Nagar, Egmore, Nungambakkam'};
+const ZONE_COORDS = {North:[13.15,80.28],South:[13.00,80.23],East:[12.91,80.23],West:[13.08,80.15],Central:[13.06,80.24]};
+const ZONE_POLYGONS = {
+  North:[[13.18,80.22],[13.18,80.34],[13.12,80.34],[13.12,80.22]],
+  South:[[13.03,80.19],[13.03,80.27],[12.96,80.27],[12.96,80.19]],
+  East:[[12.95,80.20],[12.95,80.28],[12.87,80.28],[12.87,80.20]],
+  West:[[13.12,80.10],[13.12,80.20],[13.04,80.20],[13.04,80.10]],
+  Central:[[13.09,80.21],[13.09,80.28],[13.03,80.28],[13.03,80.21]]
+};
+const CATEGORIES = ['Roads & Infrastructure','Water Supply','Sanitation','Electricity','Public Safety','Air Quality','Noise Pollution','Green Spaces','Waste Management','Traffic','Public Health','Digital Services'];
+const SEVERITIES = ['Low','Medium','High','Critical'];
+const STATUSES = ['Pending','In Progress','Resolved'];
+const DEPARTMENTS = [
+  {name:'PWD',fullName:'Public Works Department',category:'Roads & Infrastructure',staff:120,budget:450},
+  {name:'CMWSSB',fullName:'Chennai Metro Water',category:'Water Supply',staff:85,budget:380},
+  {name:'GCC Sanitation',fullName:'GCC Sanitation Wing',category:'Sanitation',staff:200,budget:320},
+  {name:'TANGEDCO',fullName:'TN Electricity Board',category:'Electricity',staff:95,budget:520},
+  {name:'Chennai Police',fullName:'Chennai City Police',category:'Public Safety',staff:450,budget:680},
+  {name:'TNPCB',fullName:'TN Pollution Control Board',category:'Air Quality',staff:45,budget:180},
+  {name:'Health Dept',fullName:'Health Department',category:'Public Health',staff:160,budget:420},
+  {name:'Smart City SPV',fullName:'Smart City Mission SPV',category:'Digital Services',staff:60,budget:750}
+];
+const SDG_MAP = {
+  'Roads & Infrastructure':{num:9,label:'SDG 9: Industry & Infrastructure',color:'#f36d25'},
+  'Water Supply':{num:6,label:'SDG 6: Clean Water',color:'#26bde2'},
+  'Sanitation':{num:6,label:'SDG 6: Clean Water & Sanitation',color:'#26bde2'},
+  'Electricity':{num:7,label:'SDG 7: Affordable Energy',color:'#fcc30b'},
+  'Public Safety':{num:16,label:'SDG 16: Peace & Justice',color:'#00689d'},
+  'Air Quality':{num:13,label:'SDG 13: Climate Action',color:'#3f7e44'},
+  'Noise Pollution':{num:11,label:'SDG 11: Sustainable Cities',color:'#f99d26'},
+  'Green Spaces':{num:15,label:'SDG 15: Life on Land',color:'#56c02b'},
+  'Waste Management':{num:12,label:'SDG 12: Responsible Consumption',color:'#bf8b2e'},
+  'Traffic':{num:11,label:'SDG 11: Sustainable Cities',color:'#f99d26'},
+  'Public Health':{num:3,label:'SDG 3: Good Health',color:'#4c9f38'},
+  'Digital Services':{num:9,label:'SDG 9: Industry & Infrastructure',color:'#f36d25'}
+};
+const COMPLAINT_TITLES = [
+  {title:'Pothole on Anna Salai near Gemini Flyover',cat:'Roads & Infrastructure',zone:'Central',sev:'High'},
+  {title:'Sewage overflow near Adyar bridge',cat:'Sanitation',zone:'South',sev:'Critical'},
+  {title:'Broken street light on OMR stretch',cat:'Electricity',zone:'East',sev:'Medium'},
+  {title:'Garbage not collected for 5 days in T.Nagar',cat:'Waste Management',zone:'Central',sev:'High'},
+  {title:'Water supply disruption in Velachery',cat:'Water Supply',zone:'South',sev:'High'},
+  {title:'Illegal dumping near Cooum river',cat:'Waste Management',zone:'Central',sev:'Critical'},
+  {title:'Traffic signal malfunction at Kathipara junction',cat:'Traffic',zone:'West',sev:'Critical'},
+  {title:'Flooded underpass near Mambalam railway',cat:'Roads & Infrastructure',zone:'Central',sev:'High'},
+  {title:'Air quality deterioration near Manali refinery',cat:'Air Quality',zone:'North',sev:'Critical'},
+  {title:'Noise from construction site in Nungambakkam',cat:'Noise Pollution',zone:'Central',sev:'Medium'},
+  {title:'Stray dog menace in Besant Nagar',cat:'Public Safety',zone:'South',sev:'Medium'},
+  {title:'Broken water main pipe in Avadi',cat:'Water Supply',zone:'West',sev:'Critical'},
+  {title:'Damaged footpath on Cathedral Road',cat:'Roads & Infrastructure',zone:'Central',sev:'Low'},
+  {title:'Overflowing drain in Thiruvottiyur',cat:'Sanitation',zone:'North',sev:'High'},
+  {title:'Street light flickering on ECR stretch',cat:'Electricity',zone:'East',sev:'Low'},
+  {title:'Park maintenance needed in Anna Nagar',cat:'Green Spaces',zone:'West',sev:'Low'},
+  {title:'Dengue cases reported in Adyar',cat:'Public Health',zone:'South',sev:'High'},
+  {title:'WiFi kiosk not working at Egmore station',cat:'Digital Services',zone:'Central',sev:'Low'},
+  {title:'Encroachment on stormwater drain in OMR',cat:'Sanitation',zone:'East',sev:'High'},
+  {title:'Expired food found at PDS shop Ambattur',cat:'Public Health',zone:'West',sev:'Medium'},
+  {title:'Bus shelter damaged near Guindy',cat:'Roads & Infrastructure',zone:'South',sev:'Medium'},
+  {title:'Open manhole on Poonamallee High Road',cat:'Roads & Infrastructure',zone:'West',sev:'Critical'},
+  {title:'Water contamination in Sholinganallur area',cat:'Water Supply',zone:'East',sev:'Critical'},
+  {title:'Illegal parking blocking ambulance route Egmore',cat:'Traffic',zone:'Central',sev:'High'},
+  {title:'Power outage for 12 hours in Manali',cat:'Electricity',zone:'North',sev:'Critical'},
+  {title:'Abandoned vehicle causing obstruction T.Nagar',cat:'Traffic',zone:'Central',sev:'Medium'},
+  {title:'Playground equipment broken in Velachery park',cat:'Green Spaces',zone:'South',sev:'Low'},
+  {title:'Chain snatching reported near Central station',cat:'Public Safety',zone:'Central',sev:'High'},
+  {title:'Garbage burning causing smoke in Kodungaiyur',cat:'Air Quality',zone:'North',sev:'High'},
+  {title:'Road cave-in near Royapettah hospital',cat:'Roads & Infrastructure',zone:'Central',sev:'Critical'},
+  {title:'Transformer explosion in Ambattur industrial area',cat:'Electricity',zone:'West',sev:'Critical'},
+  {title:'Unauthorized construction in IT corridor',cat:'Roads & Infrastructure',zone:'East',sev:'Medium'},
+  {title:'Waterlogging during rain at Guindy underpass',cat:'Roads & Infrastructure',zone:'South',sev:'High'},
+  {title:'Foul smell from garbage dump near Perungudi',cat:'Waste Management',zone:'East',sev:'High'},
+  {title:'Public toilet in poor condition at bus stand',cat:'Sanitation',zone:'North',sev:'Medium'},
+  {title:'Streetlight pole leaning dangerously Nungambakkam',cat:'Electricity',zone:'Central',sev:'High'},
+  {title:'Mosquito breeding in vacant plot Velachery',cat:'Public Health',zone:'South',sev:'Medium'},
+  {title:'Damaged speed breaker causing accidents OMR',cat:'Roads & Infrastructure',zone:'East',sev:'High'},
+  {title:'Water tanker not delivered for 3 days Avadi',cat:'Water Supply',zone:'West',sev:'High'},
+  {title:'Smoke emission from factory in Manali',cat:'Air Quality',zone:'North',sev:'High'},
+  {title:'Digital payment kiosk error at Metro station',cat:'Digital Services',zone:'Central',sev:'Low'},
+  {title:'Fallen tree blocking road Adyar after storm',cat:'Green Spaces',zone:'South',sev:'High'},
+  {title:'Noise from loudspeaker at night Thiruvottiyur',cat:'Noise Pollution',zone:'North',sev:'Medium'},
+  {title:'Road marking faded at school zone Ambattur',cat:'Roads & Infrastructure',zone:'West',sev:'Medium'},
+  {title:'Overloaded garbage truck spillage near Guindy',cat:'Waste Management',zone:'South',sev:'Medium'},
+  {title:'Pedestrian signal not working at Egmore junction',cat:'Traffic',zone:'Central',sev:'High'},
+  {title:'Borewell water quality issue in Sholinganallur',cat:'Water Supply',zone:'East',sev:'Medium'},
+  {title:'CCTV camera not working at public area Adyar',cat:'Public Safety',zone:'South',sev:'Medium'},
+  {title:'Potholes on inner road near Avadi bus depot',cat:'Roads & Infrastructure',zone:'West',sev:'High'},
+  {title:'Sewage leaking into drinking water line Manali',cat:'Water Supply',zone:'North',sev:'Critical'},
+  {title:'Solar panel stolen from smart pole OMR',cat:'Digital Services',zone:'East',sev:'Medium'},
+  {title:'Fire hydrant not functional near T.Nagar market',cat:'Public Safety',zone:'Central',sev:'High'},
+  {title:'Dumping of e-waste in vacant land Ambattur',cat:'Waste Management',zone:'West',sev:'Medium'},
+  {title:'Low water pressure issue in Adyar',cat:'Water Supply',zone:'South',sev:'Medium'},
+  {title:'Construction debris on roadside Nungambakkam',cat:'Waste Management',zone:'Central',sev:'Low'},
+];
+
+// ===== STATE =====
+let currentUser = null;
+let complaints = [];
+let notifications = [];
+let adminNotifications = [];
+let sensorData = {};
+let sensorAlerts = [];
+let chartInstances = {};
+let map = null, complaintMap = null;
+let markerLayer = null, clusterLayer = null, heatLayer = null, zoneLayer = null;
+let selectedLatLng = null;
+let feedbackComplaintId = null;
+let feedbackRating = 0;
+let currentComplaintFilter = 'all';
+
+// ===== UTILITY =====
+const rng = (min,max) => Math.floor(Math.random()*(max-min+1))+min;
+const rngF = (min,max) => +(Math.random()*(max-min)+min).toFixed(1);
+const pick = arr => arr[rng(0,arr.length-1)];
+const uid = () => 'CMP-'+String(rng(1000,9999));
+const dateStr = d => d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+const timeStr = d => d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+const daysAgo = n => {const d=new Date();d.setDate(d.getDate()-n);return d;};
+
+// ===== MOCK DATA GENERATION =====
+function generateMockData(){
+  const stored = localStorage.getItem('sc_complaints');
+  if(stored){
+    complaints = JSON.parse(stored);
+    notifications = JSON.parse(localStorage.getItem('sc_notifications')||'[]');
+    adminNotifications = JSON.parse(localStorage.getItem('sc_admin_notifs')||'[]');
+    return;
+  }
+  complaints = [];
+  COMPLAINT_TITLES.forEach((ct,i) => {
+    const dago = rng(0,30);
+    const created = daysAgo(dago);
+    const status = dago > 20 ? 'Resolved' : (dago > 10 ? pick(['Pending','In Progress','Resolved']) : pick(['Pending','In Progress']));
+    const severity = ct.sev;
+    const zoneCoords = ZONE_COORDS[ct.zone];
+    const lat = zoneCoords[0] + (Math.random()-.5)*.06;
+    const lng = zoneCoords[1] + (Math.random()-.5)*.06;
+    const sdg = SDG_MAP[ct.cat];
+    const dept = DEPARTMENTS.find(d=>d.category===ct.cat) || pick(DEPARTMENTS);
+    const resolvedDate = status==='Resolved' ? new Date(created.getTime()+rng(1,5)*86400000) : null;
+    complaints.push({
+      id: 'CMP-'+(1000+i),
+      title: ct.title,
+      category: ct.cat,
+      description: 'Reported by citizen. '+ct.title+'. This issue has been affecting the area and requires immediate attention from the concerned department.',
+      severity,
+      status,
+      zone: ct.zone,
+      lat, lng,
+      sdg: sdg,
+      department: dept.name,
+      createdAt: created.toISOString(),
+      resolvedAt: resolvedDate ? resolvedDate.toISOString() : null,
+      anonymous: Math.random()>.8,
+      citizenId: 'citizen_'+rng(1,20),
+      citizenName: pick(['Rajesh Kumar','Priya Sharma','Anand Venkat','Lakshmi Devi','Suresh Babu','Deepa Murali','Karthik Rajan','Meena Sundari','Vikram Singh','Fatima Begum']),
+      aiConfidence: rng(78,98),
+      estimatedDays: rng(2,14),
+      rating: status==='Resolved' ? rng(2,5) : null,
+      feedback: status==='Resolved' && Math.random()>.5 ? 'Issue was resolved satisfactorily.' : null,
+      timeline: generateTimeline(status, created)
+    });
+  });
+  saveData();
+}
+
+function generateTimeline(status, created){
+  const tl = [{step:'Submitted',time:created.toISOString(),done:true}];
+  const ack = new Date(created.getTime()+rng(1,4)*3600000);
+  tl.push({step:'Acknowledged',time:ack.toISOString(),done:status!=='Pending'});
+  if(status==='In Progress'||status==='Resolved'){
+    const asgn = new Date(ack.getTime()+rng(2,8)*3600000);
+    tl.push({step:'Assigned to Department',time:asgn.toISOString(),done:true});
+    const prog = new Date(asgn.getTime()+rng(1,3)*86400000);
+    tl.push({step:'In Progress',time:prog.toISOString(),done:true});
+  } else {
+    tl.push({step:'Assigned to Department',time:null,done:false});
+    tl.push({step:'In Progress',time:null,done:false});
+  }
+  if(status==='Resolved'){
+    const res = new Date(created.getTime()+rng(2,7)*86400000);
+    tl.push({step:'Resolved',time:res.toISOString(),done:true});
+  } else {
+    tl.push({step:'Resolved',time:null,done:false});
+  }
+  return tl;
+}
+
+function saveData(){
+  localStorage.setItem('sc_complaints',JSON.stringify(complaints));
+  localStorage.setItem('sc_notifications',JSON.stringify(notifications));
+  localStorage.setItem('sc_admin_notifs',JSON.stringify(adminNotifications));
+}
+
+// ===== AUTH =====
+function switchAuthTab(tab){
+  document.getElementById('loginForm').style.display = tab==='login'?'block':'none';
+  document.getElementById('signupForm').style.display = tab==='signup'?'block':'none';
+  document.getElementById('authLoginTab').classList.toggle('active',tab==='login');
+  document.getElementById('authSignupTab').classList.toggle('active',tab==='signup');
+}
+
+function handleLogin(e){
+  e.preventDefault();
+  const email = document.getElementById('loginEmail').value;
+  const pass = document.getElementById('loginPassword').value;
+  if(email==='admin@smartcity.gov' && pass==='admin123'){
+    currentUser = {email,name:'Admin Officer',role:'admin',zone:'All'};
+  } else {
+    const users = JSON.parse(localStorage.getItem('sc_users')||'[]');
+    const u = users.find(u=>u.email===email && u.password===pass);
+    if(!u){showToast('Invalid credentials. Please try again.','error');return;}
+    currentUser = {email:u.email,name:u.name,role:'citizen',zone:u.zone,phone:u.phone};
+  }
+  localStorage.setItem('sc_currentUser',JSON.stringify(currentUser));
+  enterApp();
+}
+
+function handleSignup(e){
+  e.preventDefault();
+  const name = document.getElementById('signupName').value;
+  const email = document.getElementById('signupEmail').value;
+  const phone = document.getElementById('signupPhone').value;
+  const zone = document.getElementById('signupZone').value;
+  const pass = document.getElementById('signupPassword').value;
+  const users = JSON.parse(localStorage.getItem('sc_users')||'[]');
+  if(users.find(u=>u.email===email)){showToast('Email already registered.','error');return;}
+  users.push({name,email,phone,zone,password:pass});
+  localStorage.setItem('sc_users',JSON.stringify(users));
+  showToast('Account created! You can now login.','success');
+  switchAuthTab('login');
+}
+
+function handleLogout(){
+  localStorage.removeItem('sc_currentUser');
+  currentUser = null;
+  location.reload();
+}
+
+function enterApp(){
+  document.getElementById('authScreen').style.display='none';
+  document.getElementById('appContainer').classList.add('active');
+  setupUI();
+}
+
+function checkAuth(){
+  const stored = localStorage.getItem('sc_currentUser');
+  if(stored){
+    currentUser = JSON.parse(stored);
+    enterApp();
+  }
+}
+
+// ===== UI SETUP =====
+function setupUI(){
+  const isAdmin = currentUser.role==='admin';
+  document.querySelectorAll('.admin-nav').forEach(el=>el.style.display=isAdmin?'block':'none');
+  document.querySelectorAll('.citizen-nav').forEach(el=>el.style.display=isAdmin?'none':'block');
+  document.querySelectorAll('.admin-only').forEach(el=>el.style.display=isAdmin?'':'none');
+  document.getElementById('userName').textContent=currentUser.name;
+  document.getElementById('userRole').textContent=isAdmin?'Administrator':'Citizen — '+currentUser.zone;
+  document.getElementById('userAvatar').textContent=currentUser.name.charAt(0).toUpperCase();
+  if(isAdmin){
+    navigateTo('dashboard');
+    setupMobileNav('admin');
+  } else {
+    navigateTo('citizen-dashboard');
+    setupMobileNav('citizen');
+  }
+  initDashboard();
+  updateBadges();
+}
+
+function setupMobileNav(role){
+  const items = role==='admin' ? [
+    {page:'dashboard',icon:'fa-th-large',label:'Dashboard'},
+    {page:'map',icon:'fa-map',label:'Map'},
+    {page:'complaints',icon:'fa-clipboard-list',label:'Complaints'},
+    {page:'sensors',icon:'fa-broadcast-tower',label:'Sensors'},
+    {page:'admin-notif',icon:'fa-bell',label:'Alerts'}
+  ] : [
+    {page:'citizen-dashboard',icon:'fa-th-large',label:'Home'},
+    {page:'citizen-complaint',icon:'fa-plus-circle',label:'Report'},
+    {page:'citizen-history',icon:'fa-history',label:'History'},
+    {page:'citizen-inbox',icon:'fa-envelope',label:'Inbox'}
+  ];
+  const c = document.getElementById('mobileNavItems');
+  c.innerHTML = items.map(it=>`<div class="mob-nav-item ${it.page===(role==='admin'?'dashboard':'citizen-dashboard')?'active':''}" data-page="${it.page}" onclick="navigateTo('${it.page}')"><i class="fas ${it.icon}"></i><span>${it.label}</span></div>`).join('');
+}
+
+// ===== NAVIGATION =====
+function navigateTo(page){
+  document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active'));
+  const target = document.getElementById('page-'+page);
+  if(target) target.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>{n.classList.toggle('active',n.dataset.page===page)});
+  document.querySelectorAll('.mob-nav-item').forEach(n=>{n.classList.toggle('active',n.dataset.page===page)});
+  // Close mobile sidebar
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('active');
+  // Initialize page-specific content
+  switch(page){
+    case 'dashboard': renderAdminDashboard(); break;
+    case 'map': setTimeout(()=>initMap(),100); break;
+    case 'complaints': renderComplaintsTable(); break;
+    case 'sensors': renderSensors(); break;
+    case 'zones': renderZones(); break;
+    case 'misi': renderMISI(); break;
+    case 'policy': break;
+    case 'resources': renderResources(); break;
+    case 'admin-notif': renderAdminNotifications(); break;
+    case 'citizen-dashboard': renderCitizenDashboard(); break;
+    case 'citizen-complaint': setTimeout(()=>initComplaintMap(),100); break;
+    case 'citizen-history': renderCitizenHistory(); break;
+    case 'citizen-inbox': renderCitizenInbox(); break;
+  }
+}
+
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('active');
+}
+
+// ===== THEME =====
+function toggleTheme(){
+  const html = document.documentElement;
+  const isDark = html.dataset.theme==='dark';
+  html.dataset.theme = isDark?'light':'dark';
+  document.getElementById('themeIcon').className = isDark?'fas fa-sun':'fas fa-moon';
+  localStorage.setItem('sc_theme',html.dataset.theme);
+  // Reinit charts with new colors
+  Object.values(chartInstances).forEach(c=>{if(c&&c.destroy)c.destroy()});
+  chartInstances={};
+  const currentPage = document.querySelector('.page-section.active');
+  if(currentPage) {
+    const id = currentPage.id.replace('page-','');
+    navigateTo(id);
+  }
+}
+
+// ===== TOAST =====
+function showToast(msg,type='info'){
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className='toast '+type;
+  const icons = {success:'fa-check-circle',error:'fa-exclamation-circle',info:'fa-info-circle'};
+  t.innerHTML=`<i class="fas ${icons[type]||icons.info}"></i><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(100px)';setTimeout(()=>t.remove(),300)},4000);
+}
+
+// ===== MODAL =====
+function openModal(id){document.getElementById(id).classList.add('active')}
+function closeModal(id){document.getElementById(id).classList.remove('active')}
+
+// ===== SEARCH =====
+function handleSearch(q){
+  const r = document.getElementById('searchResults');
+  if(!q||q.length<2){r.classList.remove('active');return;}
+  const ql = q.toLowerCase();
+  const matches = complaints.filter(c=>c.id.toLowerCase().includes(ql)||c.title.toLowerCase().includes(ql)||c.category.toLowerCase().includes(ql)||c.zone.toLowerCase().includes(ql)).slice(0,8);
+  if(!matches.length){r.classList.remove('active');return;}
+  r.innerHTML = matches.map(c=>`<div class="search-result-item" onclick="viewComplaint('${c.id}')"><strong>${c.id}</strong> — ${c.title}<br><span class="text-xs text-muted">${c.category} · ${c.zone} · <span class="status-badge status-${c.status.toLowerCase().replace(' ','-')}">${c.status}</span></span></div>`).join('');
+  r.classList.add('active');
+}
+document.addEventListener('click',e=>{if(!e.target.closest('.search-box'))document.getElementById('searchResults').classList.remove('active')});
+
+// ===== BADGES =====
+function updateBadges(){
+  const pending = complaints.filter(c=>c.status==='Pending').length;
+  document.getElementById('pendingBadge').textContent=pending;
+  const unreadCitizen = notifications.filter(n=>!n.read && n.citizenEmail===currentUser?.email).length;
+  const el = document.getElementById('citizenInboxBadge');
+  if(el) el.textContent=unreadCitizen||'';
+  const adminUnread = adminNotifications.filter(n=>!n.read).length;
+  const ab = document.getElementById('adminNotifBadge');
+  if(ab) ab.textContent=adminUnread||'';
+  const dot = document.getElementById('topNotifDot');
+  if(dot) dot.style.display=(unreadCitizen||adminUnread)?'block':'none';
+}
+</script>
+<script>
+// ===== ADMIN DASHBOARD =====
+function renderAdminDashboard(){
+  document.getElementById('dashboardTime').textContent='Last updated: '+timeStr(new Date());
+  const total = complaints.length;
+  const today = new Date().toDateString();
+  const resolvedToday = complaints.filter(c=>c.status==='Resolved'&&c.resolvedAt&&new Date(c.resolvedAt).toDateString()===today).length;
+  const pendingCritical = complaints.filter(c=>c.status!=='Resolved'&&c.severity==='Critical').length;
+  const resolved = complaints.filter(c=>c.status==='Resolved');
+  const avgRes = resolved.length ? (resolved.reduce((a,c)=>{const d=c.resolvedAt?((new Date(c.resolvedAt)-new Date(c.createdAt))/86400000):0;return a+d},0)/resolved.length).toFixed(1) : '0';
+  const avgRating = resolved.filter(c=>c.rating).length ? (resolved.filter(c=>c.rating).reduce((a,c)=>a+c.rating,0)/resolved.filter(c=>c.rating).length).toFixed(1) : '4.2';
+  const activeDepts = DEPARTMENTS.length;
+
+  document.getElementById('kpiGrid').innerHTML = `
+    <div class="card kpi-card"><div class="kpi-icon cyan"><i class="fas fa-clipboard-list"></i></div><div class="kpi-data"><h3>${total}</h3><p>Total Complaints</p><span class="trend up"><i class="fas fa-arrow-up"></i> +${rng(3,8)}% this week</span></div></div>
+    <div class="card kpi-card"><div class="kpi-icon green"><i class="fas fa-check-circle"></i></div><div class="kpi-data"><h3>${resolvedToday}</h3><p>Resolved Today</p><span class="trend up"><i class="fas fa-arrow-up"></i> On track</span></div></div>
+    <div class="card kpi-card"><div class="kpi-icon red"><i class="fas fa-exclamation-triangle"></i></div><div class="kpi-data"><h3>${pendingCritical}</h3><p>Pending Critical</p><span class="trend ${pendingCritical>3?'down':'up'}"><i class="fas fa-arrow-${pendingCritical>3?'up':'down'}"></i> ${pendingCritical>3?'Needs attention':'Under control'}</span></div></div>
+    <div class="card kpi-card"><div class="kpi-icon amber"><i class="fas fa-clock"></i></div><div class="kpi-data"><h3>${avgRes}d</h3><p>Avg Resolution Time</p><span class="trend up"><i class="fas fa-arrow-down"></i> -0.3d from last week</span></div></div>
+    <div class="card kpi-card"><div class="kpi-icon purple"><i class="fas fa-star"></i></div><div class="kpi-data"><h3>${avgRating}/5</h3><p>Citizen Satisfaction</p><span class="trend up"><i class="fas fa-arrow-up"></i> +0.2 this month</span></div></div>
+    <div class="card kpi-card"><div class="kpi-icon blue"><i class="fas fa-building"></i></div><div class="kpi-data"><h3>${activeDepts}</h3><p>Active Departments</p><span class="trend up"><i class="fas fa-check"></i> All operational</span></div></div>
+  `;
+
+  renderTrendChart();
+  renderCategoryChart();
+  renderZoneBarChart();
+  renderResolutionChart();
+  renderRecentTable();
+  renderDeptTable();
+  checkAlerts();
+}
+
+function renderTrendChart(){
+  const ctx = document.getElementById('trendChart');
+  if(chartInstances.trend){chartInstances.trend.destroy();}
+  const labels = [];const data=[];const resolved=[];
+  for(let i=29;i>=0;i--){
+    const d=daysAgo(i);
+    labels.push(d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'}));
+    data.push(complaints.filter(c=>new Date(c.createdAt).toDateString()===d.toDateString()).length||rng(0,4));
+    resolved.push(complaints.filter(c=>c.status==='Resolved'&&c.resolvedAt&&new Date(c.resolvedAt).toDateString()===d.toDateString()).length||rng(0,3));
+  }
+  chartInstances.trend = new Chart(ctx,{type:'line',data:{labels,datasets:[
+    {label:'New Complaints',data,borderColor:'#00e5ff',backgroundColor:'rgba(0,229,255,.1)',fill:true,tension:.4,pointRadius:2},
+    {label:'Resolved',data:resolved,borderColor:'#00e676',backgroundColor:'rgba(0,230,118,.1)',fill:true,tension:.4,pointRadius:2}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim(),font:{family:'DM Sans'}}}},scales:{x:{ticks:{color:'#5a6a8a',font:{size:10},maxTicksLimit:10},grid:{color:'rgba(42,53,85,.5)'}},y:{ticks:{color:'#5a6a8a'},grid:{color:'rgba(42,53,85,.5)'}}}}});
+}
+
+function renderCategoryChart(){
+  const ctx = document.getElementById('categoryChart');
+  if(chartInstances.category){chartInstances.category.destroy();}
+  const catCounts = {};
+  CATEGORIES.forEach(c=>catCounts[c]=0);
+  complaints.forEach(c=>{if(catCounts[c.category]!==undefined)catCounts[c.category]++});
+  const sorted = Object.entries(catCounts).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  chartInstances.category = new Chart(ctx,{type:'doughnut',data:{labels:sorted.map(s=>s[0]),datasets:[{data:sorted.map(s=>s[1]),backgroundColor:['#00e5ff','#ffab00','#ff3d5a','#00e676','#b388ff','#448aff','#ff6e40','#26bde2'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim(),font:{family:'DM Sans',size:11},padding:8,boxWidth:12}}}}});
+}
+
+function renderZoneBarChart(){
+  const ctx = document.getElementById('zoneBarChart');
+  if(chartInstances.zoneBar){chartInstances.zoneBar.destroy();}
+  const data = ZONES.map(z=>complaints.filter(c=>c.zone===z).length);
+  chartInstances.zoneBar = new Chart(ctx,{type:'bar',data:{labels:ZONES,datasets:[{label:'Complaints',data,backgroundColor:['#00e5ff','#ffab00','#ff3d5a','#b388ff','#00e676'],borderRadius:6,barThickness:32}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#5a6a8a'},grid:{display:false}},y:{ticks:{color:'#5a6a8a'},grid:{color:'rgba(42,53,85,.5)'}}}}});
+}
+
+function renderResolutionChart(){
+  const ctx = document.getElementById('resolutionChart');
+  if(chartInstances.resolution){chartInstances.resolution.destroy();}
+  const labels=[];const data=[];
+  for(let i=29;i>=0;i--){
+    const d=daysAgo(i);
+    labels.push(d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'}));
+    const total=complaints.filter(c=>new Date(c.createdAt)<=d).length||1;
+    const resolved=complaints.filter(c=>c.status==='Resolved'&&c.resolvedAt&&new Date(c.resolvedAt)<=d).length;
+    data.push(Math.round((resolved/total)*100));
+  }
+  chartInstances.resolution = new Chart(ctx,{type:'line',data:{labels,datasets:[{label:'Resolution Rate %',data,borderColor:'#ffab00',backgroundColor:'rgba(255,171,0,.15)',fill:true,tension:.4,pointRadius:1}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#8899b8',font:{family:'DM Sans'}}}},scales:{x:{ticks:{color:'#5a6a8a',font:{size:10},maxTicksLimit:10},grid:{color:'rgba(42,53,85,.5)'}},y:{min:0,max:100,ticks:{color:'#5a6a8a',callback:v=>v+'%'},grid:{color:'rgba(42,53,85,.5)'}}}}});
+}
+
+function renderRecentTable(){
+  const recent = [...complaints].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,10);
+  const tbody = document.querySelector('#recentTable tbody');
+  tbody.innerHTML = recent.map(c=>`<tr>
+    <td><strong class="text-cyan">${c.id}</strong></td>
+    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.title}</td>
+    <td>${c.category}</td><td>${c.zone}</td>
+    <td><span class="severity-${c.severity.toLowerCase()}">${c.severity}</span></td>
+    <td><span class="status-badge status-${c.status.toLowerCase().replace(' ','-')}">${c.status}</span></td>
+    <td class="text-xs">${dateStr(new Date(c.createdAt))}</td>
+    <td><button class="btn btn-secondary btn-sm" onclick="viewComplaint('${c.id}')"><i class="fas fa-eye"></i></button>
+    ${c.status!=='Resolved'?`<button class="btn btn-success btn-sm" onclick="updateStatus('${c.id}','${c.status==='Pending'?'In Progress':'Resolved'}')"><i class="fas fa-arrow-right"></i></button>`:''}</td>
+  </tr>`).join('');
+}
+
+function renderDeptTable(){
+  const tbody = document.querySelector('#deptTable tbody');
+  tbody.innerHTML = DEPARTMENTS.map(d=>{
+    const open = complaints.filter(c=>c.department===d.name&&c.status!=='Resolved').length;
+    const closed = complaints.filter(c=>c.department===d.name&&c.status==='Resolved').length;
+    const cap = Math.round((open/Math.max(d.staff*.3,1))*100);
+    const eff = Math.min(100,Math.round((closed/Math.max(open+closed,1))*100)+rng(10,30));
+    return `<tr><td><strong>${d.name}</strong><br><span class="text-xs text-muted">${d.fullName}</span></td><td>${open}</td><td>${rng(0,3)}</td><td>${d.staff}</td>
+    <td><div class="progress-bar"><div class="progress-fill" style="width:${Math.min(cap,100)}%;background:${cap>85?'var(--red)':cap>60?'var(--amber)':'var(--green)'}"></div></div><span class="text-xs">${cap}%</span></td>
+    <td><span style="color:${eff>70?'var(--green)':eff>40?'var(--amber)':'var(--red)'}">${eff}%</span></td></tr>`;
+  }).join('');
+}
+
+// ===== MAP =====
+let mapInitialized = false;
+function initMap(){
+  if(mapInitialized && map){map.invalidateSize();return;}
+  map = L.map('cityMap',{zoomControl:true}).setView([13.05,80.22],12);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
+    attribution:'©OpenStreetMap ©CartoDB',maxZoom:18
+  }).addTo(map);
+  markerLayer = L.layerGroup().addTo(map);
+  clusterLayer = L.markerClusterGroup({maxClusterRadius:50,iconCreateFunction:function(cluster){const cnt=cluster.getChildCount();const sz=cnt>20?50:cnt>10?40:30;return L.divIcon({html:`<div style="background:var(--cyan);color:#000;border-radius:50%;width:${sz}px;height:${sz}px;display:flex;align-items:center;justify-content:center;font-weight:700;font-family:Orbitron;font-size:${sz>40?14:12}px;box-shadow:0 0 12px rgba(0,229,255,.5)">${cnt}</div>`,className:'',iconSize:[sz,sz]})}});
+  zoneLayer = L.layerGroup();
+  renderMapMarkers();
+  mapInitialized = true;
+}
+
+const SEVERITY_COLORS = {Low:'#00e676',Medium:'#ffab00',High:'#ff6e40',Critical:'#ff3d5a'};
+
+function renderMapMarkers(){
+  if(!map)return;
+  markerLayer.clearLayers();
+  clusterLayer.clearLayers();
+  const filtered = getFilteredComplaints();
+  filtered.forEach(c=>{
+    const color = SEVERITY_COLORS[c.severity]||'#00e5ff';
+    const icon = L.divIcon({html:`<div style="background:${color};width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 8px ${color}"></div>`,className:'',iconSize:[14,14],iconAnchor:[7,7]});
+    const marker = L.marker([c.lat,c.lng],{icon}).bindPopup(`<div class="complaint-popup"><h4>${c.id}: ${c.title}</h4><p><strong>Category:</strong> ${c.category}</p><p><strong>Zone:</strong> ${c.zone}</p><p><strong>Severity:</strong> <span class="severity-${c.severity.toLowerCase()}">${c.severity}</span></p><p><strong>Status:</strong> <span class="status-badge status-${c.status.toLowerCase().replace(' ','-')}">${c.status}</span></p><p><strong>SDG:</strong> <span class="sdg-badge" style="background:${c.sdg?.color||'#666'}">SDG ${c.sdg?.num||'?'}</span></p><p><strong>AI Confidence:</strong> ${c.aiConfidence}%</p><p style="margin-top:8px"><a href="#" onclick="viewComplaint('${c.id}');return false;">View Details →</a></p></div>`);
+    markerLayer.addLayer(marker);
+    clusterLayer.addLayer(L.marker([c.lat,c.lng],{icon}));
+  });
+}
+
+function getFilteredComplaints(){
+  let f = [...complaints];
+  const cat = document.getElementById('filterCategory')?.value;
+  const sev = document.getElementById('filterSeverity')?.value;
+  const stat = document.getElementById('filterStatus')?.value;
+  const zone = document.getElementById('filterZone')?.value;
+  const from = document.getElementById('filterDateFrom')?.value;
+  const to = document.getElementById('filterDateTo')?.value;
+  if(cat) f=f.filter(c=>c.category===cat);
+  if(sev) f=f.filter(c=>c.severity===sev);
+  if(stat) f=f.filter(c=>c.status===stat);
+  if(zone) f=f.filter(c=>c.zone===zone);
+  if(from) f=f.filter(c=>new Date(c.createdAt)>=new Date(from));
+  if(to) f=f.filter(c=>new Date(c.createdAt)<=new Date(to+'T23:59:59'));
+  return f;
+}
+
+function applyMapFilters(){renderMapMarkers();updateHeatmap();}
+
+let currentMapView = 'markers';
+function setMapView(view,btn){
+  if(!map)return;
+  document.querySelectorAll('.map-controls button').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  currentMapView=view;
+  map.removeLayer(markerLayer);map.removeLayer(clusterLayer);
+  if(heatLayer)map.removeLayer(heatLayer);
+  map.removeLayer(zoneLayer);
+  switch(view){
+    case 'markers':map.addLayer(markerLayer);break;
+    case 'cluster':map.addLayer(clusterLayer);break;
+    case 'heat':updateHeatmap();break;
+    case 'zones':renderZonePolygons();map.addLayer(zoneLayer);map.addLayer(markerLayer);break;
+  }
+}
+
+function updateHeatmap(){
+  if(!map)return;
+  if(heatLayer)map.removeLayer(heatLayer);
+  const mode = document.querySelector('input[name="heatMode"]:checked')?.value||'count';
+  const filtered = getFilteredComplaints();
+  const points = filtered.map(c=>{
+    let intensity = 1;
+    if(mode==='severity') intensity={Low:.3,Medium:.5,High:.8,Critical:1}[c.severity]||.5;
+    if(mode==='unresolved') intensity=c.status!=='Resolved'?1:.2;
+    return [c.lat,c.lng,intensity];
+  });
+  heatLayer = L.heatLayer(points,{radius:30,blur:20,maxZoom:15,gradient:{0.2:'#448aff',0.5:'#ffeb3b',0.8:'#ff6e40',1:'#ff3d5a'}});
+  if(currentMapView==='heat') heatLayer.addTo(map);
+}
+
+function renderZonePolygons(){
+  zoneLayer.clearLayers();
+  const colors = {North:'#00e5ff',South:'#ffab00',East:'#ff3d5a',West:'#b388ff',Central:'#00e676'};
+  ZONES.forEach(z=>{
+    const poly = L.polygon(ZONE_POLYGONS[z],{color:colors[z],fillColor:colors[z],fillOpacity:.15,weight:2}).bindTooltip(`${z} Zone — ${complaints.filter(c=>c.zone===z).length} complaints`,{permanent:true,direction:'center',className:''});
+    zoneLayer.addLayer(poly);
+  });
+}
+
+// Populate category filter
+function populateCategoryFilter(){
+  const sel = document.getElementById('filterCategory');
+  if(!sel)return;
+  if(sel.options.length<=1){
+    CATEGORIES.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o)});
+  }
+}
+
+// ===== COMPLAINT MAP (Citizen) =====
+let complaintMapInit = false;
+function initComplaintMap(){
+  if(complaintMapInit && complaintMap){complaintMap.invalidateSize();return;}
+  complaintMap = L.map('complaintMap').setView([13.05,80.22],12);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:18}).addTo(complaintMap);
+  let marker = null;
+  complaintMap.on('click',function(e){
+    selectedLatLng = e.latlng;
+    if(marker) complaintMap.removeLayer(marker);
+    marker = L.marker(e.latlng,{icon:L.divIcon({html:'<div style="background:var(--cyan);width:20px;height:20px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 12px var(--cyan)"></div>',className:'',iconSize:[20,20],iconAnchor:[10,10]})}).addTo(complaintMap);
+    document.getElementById('selectedLocation').innerHTML=`<i class="fas fa-map-pin text-cyan"></i> Location: ${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)}`;
+  });
+  complaintMapInit=true;
+}
+
+// ===== SUBMIT COMPLAINT =====
+function submitComplaint(e){
+  e.preventDefault();
+  if(!selectedLatLng){showToast('Please click on the map to select a location.','error');return;}
+  const cat = document.getElementById('compCategory').value;
+  const title = document.getElementById('compTitle').value;
+  const desc = document.getElementById('compDesc').value;
+  const sev = document.getElementById('compSeverity').value;
+  const anon = document.getElementById('compAnon').checked;
+  // Show AI analysis modal
+  openModal('aiModal');
+  const steps = ['Analyzing complaint category...','Mapping to UN SDG framework...','Assessing priority level...','Identifying responsible department...','Generating insights...'];
+  let step = 0;
+  const aiInterval = setInterval(()=>{
+    step++;
+    if(step<steps.length){
+      document.getElementById('aiStatusText').textContent=steps[step];
+    } else {
+      clearInterval(aiInterval);
+      closeModal('aiModal');
+      const sdg = SDG_MAP[cat];
+      const dept = DEPARTMENTS.find(d=>d.category===cat)||pick(DEPARTMENTS);
+      const zone = detectZone(selectedLatLng.lat,selectedLatLng.lng);
+      const newId = 'CMP-'+(1000+complaints.length);
+      const complaint = {
+        id:newId,title,category:cat,description:desc,severity:sev,status:'Pending',
+        zone,lat:selectedLatLng.lat,lng:selectedLatLng.lng,sdg,department:dept.name,
+        createdAt:new Date().toISOString(),resolvedAt:null,anonymous:anon,
+        citizenId:currentUser.email,citizenName:anon?'Anonymous':currentUser.name,
+        aiConfidence:rng(82,97),estimatedDays:rng(3,10),rating:null,feedback:null,
+        timeline:[{step:'Submitted',time:new Date().toISOString(),done:true},{step:'Acknowledged',time:null,done:false},{step:'Assigned to Department',time:null,done:false},{step:'In Progress',time:null,done:false},{step:'Resolved',time:null,done:false}]
+      };
+      complaints.push(complaint);
+      // Add notifications
+      notifications.push({id:'N'+Date.now(),type:'submitted',complaintId:newId,citizenEmail:currentUser.email,message:`Your complaint #${newId} (${cat}) has been received and assigned to ${dept.name}. Expected resolution: ${complaint.estimatedDays} days.`,time:new Date().toISOString(),read:false});
+      adminNotifications.push({id:'AN'+Date.now(),type:'new',complaintId:newId,message:`New ${sev} complaint #${newId}: "${title}" in ${zone} zone. Assigned to ${dept.name}.`,time:new Date().toISOString(),read:false});
+      saveData();
+      updateBadges();
+      showToast(`✓ Complaint #${newId} submitted. Confirmation sent to your email.`,'success');
+      document.getElementById('complaintForm').reset();
+      selectedLatLng=null;
+      document.getElementById('selectedLocation').innerHTML='No location selected — click on the map';
+      document.getElementById('photoPreview').innerHTML='';
+    }
+  },700);
+}
+
+function detectZone(lat,lng){
+  let minDist=Infinity,closest='Central';
+  for(const [z,coords] of Object.entries(ZONE_COORDS)){
+    const d=Math.sqrt((lat-coords[0])**2+(lng-coords[1])**2);
+    if(d<minDist){minDist=d;closest=z;}
+  }
+  return closest;
+}
+
+function previewPhoto(input){
+  const preview = document.getElementById('photoPreview');
+  if(input.files&&input.files[0]){
+    const reader = new FileReader();
+    reader.onload=e=>{preview.innerHTML=`<img src="${e.target.result}" style="max-width:200px;border-radius:8px;border:1px solid var(--border)">`};
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+// ===== STATUS UPDATE (Admin) =====
+function updateStatus(id,newStatus){
+  const c = complaints.find(x=>x.id===id);
+  if(!c)return;
+  c.status=newStatus;
+  const now = new Date();
+  if(newStatus==='In Progress'){
+    c.timeline[1]={step:'Acknowledged',time:now.toISOString(),done:true};
+    c.timeline[2]={step:'Assigned to Department',time:now.toISOString(),done:true};
+    c.timeline[3]={step:'In Progress',time:now.toISOString(),done:true};
+  }
+  if(newStatus==='Resolved'){
+    c.resolvedAt=now.toISOString();
+    c.timeline.forEach(t=>t.done=true);
+    c.timeline[4]={step:'Resolved',time:now.toISOString(),done:true};
+    // Notification to citizen
+    notifications.push({id:'N'+Date.now(),type:'resolved',complaintId:id,citizenEmail:c.citizenId,message:`Your complaint #${id} has been resolved. Thank you for helping improve our city! Please rate your experience.`,time:now.toISOString(),read:false});
+  }
+  saveData();
+  updateBadges();
+  showToast(`Complaint ${id} updated to ${newStatus}`,'success');
+  renderAdminDashboard();
+}
+
+// ===== VIEW COMPLAINT =====
+function viewComplaint(id){
+  const c = complaints.find(x=>x.id===id);
+  if(!c)return;
+  document.getElementById('searchResults').classList.remove('active');
+  const sdgHtml = c.sdg?`<span class="sdg-badge" style="background:${c.sdg.color}">SDG ${c.sdg.num}</span> ${c.sdg.label}`:'N/A';
+  const tlHtml = c.timeline.map((t,i)=>{
+    const cls = t.done?(i===c.timeline.length-1&&c.status==='Resolved'?'completed':'completed'):(c.timeline[i-1]?.done?'current':'');
+    return `<div class="timeline-item ${cls}"><div class="tl-title">${t.step}</div><div class="tl-time">${t.time?dateStr(new Date(t.time))+' '+timeStr(new Date(t.time)):'Pending'}</div></div>`;
+  }).join('');
+  const slaHours = c.severity==='Critical'?24:c.severity==='High'?48:c.severity==='Medium'?72:120;
+  const elapsed = (Date.now()-new Date(c.createdAt).getTime())/3600000;
+  const slaBreach = c.status!=='Resolved'&&elapsed>slaHours;
+  document.getElementById('complaintModalBody').innerHTML=`
+    <div class="flex justify-between items-center mb-4"><h4 class="text-cyan">${c.id}</h4><span class="status-badge status-${c.status.toLowerCase().replace(' ','-')}">${c.status}</span></div>
+    <h3 style="font-family:'DM Sans';font-size:1rem;margin-bottom:12px">${c.title}</h3>
+    <p class="text-sm text-muted mb-4">${c.description}</p>
+    <div class="grid grid-2 gap-3 mb-4">
+      <div><span class="text-xs text-muted">Category</span><p class="text-sm">${c.category}</p></div>
+      <div><span class="text-xs text-muted">Zone</span><p class="text-sm">${c.zone}</p></div>
+      <div><span class="text-xs text-muted">Severity</span><p class="severity-${c.severity.toLowerCase()} text-sm">${c.severity}</p></div>
+      <div><span class="text-xs text-muted">Department</span><p class="text-sm">${c.department}</p></div>
+      <div><span class="text-xs text-muted">SDG Mapping</span><p class="text-sm">${sdgHtml}</p></div>
+      <div><span class="text-xs text-muted">Reported By</span><p class="text-sm">${c.anonymous?'Anonymous':c.citizenName}</p></div>
+    </div>
+    ${slaBreach?'<div class="alert-banner mb-3"><i class="fas fa-clock"></i><p>SLA Breach: This complaint has exceeded the '+slaHours+'hr resolution window</p></div>':''}
+    <div class="card mb-4" style="background:var(--bg-secondary)">
+      <h4 class="text-sm mb-2"><i class="fas fa-brain text-cyan"></i> AI Analysis</h4>
+      <div class="grid grid-2 gap-3">
+        <div><span class="text-xs text-muted">Confidence</span><p class="text-sm font-bold text-cyan">${c.aiConfidence}%</p></div>
+        <div><span class="text-xs text-muted">Suggested Dept</span><p class="text-sm">${c.department}</p></div>
+        <div><span class="text-xs text-muted">Est. Resolution</span><p class="text-sm">${c.estimatedDays} days</p></div>
+        <div><span class="text-xs text-muted">Priority</span><p class="text-sm severity-${c.severity.toLowerCase()}">${c.severity}</p></div>
+      </div>
+    </div>
+    <h4 class="text-sm mb-3">Status Timeline</h4>
+    <div class="timeline mb-4">${tlHtml}</div>
+    ${c.rating?`<div class="card" style="background:var(--bg-secondary)"><h4 class="text-sm mb-2">Citizen Feedback</h4><div class="star-rating mb-2">${'<i class="fas fa-star active"></i>'.repeat(c.rating)+'<i class="fas fa-star"></i>'.repeat(5-c.rating)}</div>${c.feedback?`<p class="text-sm text-muted">"${c.feedback}"</p>`:''}</div>`:''}
+    <div class="flex gap-2 mt-4">
+      ${currentUser?.role==='admin'&&c.status!=='Resolved'?`<button class="btn btn-success btn-sm" onclick="updateStatus('${c.id}','${c.status==='Pending'?'In Progress':'Resolved'}');closeModal('complaintModal')"><i class="fas fa-arrow-right"></i> ${c.status==='Pending'?'Mark In Progress':'Resolve'}</button>`:''}
+      ${currentUser?.role==='citizen'&&c.status==='Resolved'&&!c.rating?`<button class="btn btn-amber btn-sm" onclick="openFeedback('${c.id}')"><i class="fas fa-star"></i> Rate Service</button>`:''}
+    </div>
+  `;
+  openModal('complaintModal');
+}
+</script>
+<script>
+// ===== COMPLAINTS TABLE (Full) =====
+function renderComplaintsTable(){
+  let filtered = [...complaints];
+  if(currentComplaintFilter==='sla'){
+    filtered=filtered.filter(c=>{
+      if(c.status==='Resolved')return false;
+      const slaH={Critical:24,High:48,Medium:72,Low:120}[c.severity]||72;
+      return(Date.now()-new Date(c.createdAt).getTime())/3600000>slaH;
+    });
+  } else if(currentComplaintFilter!=='all'){
+    filtered=filtered.filter(c=>c.status===currentComplaintFilter);
+  }
+  const sort=document.getElementById('complaintSort')?.value||'date-desc';
+  if(sort==='date-desc')filtered.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  if(sort==='date-asc')filtered.sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
+  if(sort==='severity'){const o={Critical:0,High:1,Medium:2,Low:3};filtered.sort((a,b)=>o[a.severity]-o[b.severity]);}
+  if(sort==='status'){const o={Pending:0,'In Progress':1,Resolved:2};filtered.sort((a,b)=>o[a.status]-o[b.status]);}
+  const tbody=document.querySelector('#complaintsFullTable tbody');
+  tbody.innerHTML=filtered.map(c=>{
+    const slaH={Critical:24,High:48,Medium:72,Low:120}[c.severity]||72;
+    const elapsed=(Date.now()-new Date(c.createdAt).getTime())/3600000;
+    const breach=c.status!=='Resolved'&&elapsed>slaH;
+    return `<tr>
+    <td><strong class="text-cyan">${c.id}</strong></td>
+    <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.title}</td>
+    <td class="text-xs">${c.category}</td>
+    <td>${c.sdg?`<span class="sdg-badge" style="background:${c.sdg.color}">SDG ${c.sdg.num}</span>`:''}</td>
+    <td>${c.zone}</td>
+    <td><span class="severity-${c.severity.toLowerCase()}">${c.severity}</span></td>
+    <td><span class="status-badge status-${c.status.toLowerCase().replace(' ','-')}">${c.status}</span></td>
+    <td>${breach?'<span class="text-red text-xs font-bold"><i class="fas fa-exclamation-circle"></i> Breach</span>':'<span class="text-green text-xs">OK</span>'}</td>
+    <td class="text-xs">${dateStr(new Date(c.createdAt))}</td>
+    <td><button class="btn btn-secondary btn-sm" onclick="viewComplaint('${c.id}')"><i class="fas fa-eye"></i></button>
+    ${currentUser?.role==='admin'&&c.status!=='Resolved'?`<button class="btn btn-success btn-sm" onclick="updateStatus('${c.id}','${c.status==='Pending'?'In Progress':'Resolved'}')"><i class="fas fa-arrow-right"></i></button>`:''}</td></tr>`;
+  }).join('');
+}
+
+function filterComplaintTab(filter,btn){
+  currentComplaintFilter=filter;
+  document.querySelectorAll('#page-complaints .tab-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderComplaintsTable();
+}
+
+// ===== SENSORS =====
+function initSensorData(){
+  sensorData={
+    aqi:{label:'Air Quality Index',value:rng(60,180),unit:'AQI',icon:'fa-wind',thresholds:{good:[0,100],moderate:[101,200],unhealthy:[201,500]}},
+    temp:{label:'Temperature',value:rngF(28,38),unit:'°C',icon:'fa-thermometer-half',thresholds:{good:[0,32],moderate:[32.1,38],unhealthy:[38.1,50]}},
+    humidity:{label:'Humidity',value:rng(55,85),unit:'%',icon:'fa-tint',thresholds:{good:[40,70],moderate:[70.1,85],unhealthy:[85.1,100]}},
+    noise:{label:'Noise Level',value:rng(45,85),unit:'dB',icon:'fa-volume-up',thresholds:{good:[0,55],moderate:[55.1,70],unhealthy:[70.1,150]}},
+    traffic:{label:'Traffic Congestion',value:rng(30,90),unit:'%',icon:'fa-car',thresholds:{good:[0,40],moderate:[40.1,70],unhealthy:[70.1,100]}},
+    energy:{label:'Energy Usage',value:rng(1200,2800),unit:'MW',icon:'fa-bolt',thresholds:{good:[0,1800],moderate:[1801,2400],unhealthy:[2401,5000]}},
+    water:{label:'Water Pressure',value:rng(30,65),unit:'PSI',icon:'fa-faucet',thresholds:{good:[40,65],moderate:[25,39.9],unhealthy:[0,24.9]}},
+    pm25:{label:'PM2.5',value:rng(15,120),unit:'µg/m³',icon:'fa-smog',thresholds:{good:[0,35],moderate:[35.1,75],unhealthy:[75.1,500]}},
+    pm10:{label:'PM10',value:rng(30,200),unit:'µg/m³',icon:'fa-cloud',thresholds:{good:[0,50],moderate:[50.1,100],unhealthy:[100.1,500]}},
+    uv:{label:'UV Index',value:rng(3,11),unit:'',icon:'fa-sun',thresholds:{good:[0,5],moderate:[5.1,8],unhealthy:[8.1,15]}}
+  };
+}
+
+function getSensorStatus(sensor){
+  const v=sensor.value;const t=sensor.thresholds;
+  if(sensor.label==='Water Pressure'){
+    if(v>=t.good[0]&&v<=t.good[1])return'good';
+    if(v>=t.moderate[0]&&v<=t.moderate[1])return'moderate';
+    return'unhealthy';
+  }
+  if(v>=t.good[0]&&v<=t.good[1])return'good';
+  if(v>=t.moderate[0]&&v<=t.moderate[1])return'moderate';
+  return'unhealthy';
+}
+
+function updateSensorData(){
+  Object.keys(sensorData).forEach(k=>{
+    const s=sensorData[k];
+    const delta=(Math.random()-.5)*s.value*.05;
+    s.value=Math.max(0,+(s.value+delta).toFixed(1));
+    const status=getSensorStatus(s);
+    if(status==='unhealthy'){
+      const alertId='SA'+Date.now()+k;
+      if(!sensorAlerts.find(a=>a.sensor===k&&Date.now()-new Date(a.time).getTime()<60000)){
+        sensorAlerts.unshift({id:alertId,sensor:k,label:s.label,value:s.value,unit:s.unit,time:new Date().toISOString()});
+        if(sensorAlerts.length>20)sensorAlerts.pop();
+      }
+    }
+  });
+}
+
+function renderSensors(){
+  const grid=document.getElementById('sensorGrid');
+  grid.innerHTML=Object.entries(sensorData).map(([k,s])=>{
+    const status=getSensorStatus(s);
+    const statusLabels={good:'Good',moderate:'Moderate',unhealthy:'Unhealthy'};
+    const statusColors={good:'var(--green)',moderate:'var(--amber)',unhealthy:'var(--red)'};
+    return`<div class="card sensor-card ${status}">
+      <i class="fas ${s.icon}" style="font-size:1.5rem;color:${statusColors[status]}"></i>
+      <div class="sensor-value pulse" id="sensor-${k}">${s.value}</div>
+      <div class="sensor-label">${s.label}</div>
+      <span class="sensor-status" style="background:${statusColors[status]}20;color:${statusColors[status]}">${statusLabels[status]} ${s.unit?'· '+s.value+s.unit:''}</span>
+    </div>`;
+  }).join('');
+  renderSensorAlerts();
+}
+
+function renderSensorAlerts(){
+  const log=document.getElementById('sensorAlertLog');
+  if(!log)return;
+  log.innerHTML=sensorAlerts.length?sensorAlerts.map(a=>`<div class="inbox-item" style="border-left:3px solid var(--red)">
+    <div class="inbox-icon" style="background:rgba(255,61,90,.15);color:var(--red)"><i class="fas fa-exclamation-triangle"></i></div>
+    <div><div class="inbox-subject">${a.label} threshold exceeded: ${a.value}${a.unit}</div><div class="inbox-preview">Sensor reading outside safe range.</div></div>
+    <span class="inbox-time">${timeStr(new Date(a.time))}</span>
+  </div>`).join(''):'<p class="text-sm text-muted text-center" style="padding:20px">No recent alerts</p>';
+}
+
+function refreshSensorDisplay(){
+  Object.entries(sensorData).forEach(([k,s])=>{
+    const el=document.getElementById('sensor-'+k);
+    if(el)el.textContent=s.value;
+  });
+  renderSensorAlerts();
+}
+
+// ===== ZONES =====
+function renderZones(){
+  const zoneCards=document.getElementById('zoneCards');
+  const colors={North:'#00e5ff',South:'#ffab00',East:'#ff3d5a',West:'#b388ff',Central:'#00e676'};
+  const pops={North:'4.2L',South:'5.8L',East:'3.9L',West:'6.1L',Central:'7.3L'};
+  zoneCards.innerHTML=ZONES.map(z=>{
+    const zComplaints=complaints.filter(c=>c.zone===z);
+    const topCat=getMostFrequent(zComplaints.map(c=>c.category));
+    const misi=calculateZoneMISI(z);
+    const infraHealth=Math.max(20,100-misi+rng(-5,5));
+    return`<div class="card" style="border-top:3px solid ${colors[z]};cursor:pointer" onclick="showZoneDetail('${z}')">
+      <h4 style="font-size:.9rem;color:${colors[z]};margin-bottom:8px">${z} Zone</h4>
+      <p class="text-xs text-muted mb-3">${ZONE_AREAS[z]}</p>
+      <div class="text-xs mb-2"><strong>${zComplaints.length}</strong> complaints</div>
+      <div class="text-xs mb-2">Top: <strong>${topCat||'N/A'}</strong></div>
+      <div class="text-xs mb-2">Pop: <strong>${pops[z]}</strong></div>
+      <div class="text-xs">MISI: <strong style="color:${misi>75?'var(--red)':misi>50?'var(--amber)':'var(--green)'}">${misi}</strong></div>
+      <div class="progress-bar mt-3"><div class="progress-fill" style="width:${infraHealth}%;background:${infraHealth>70?'var(--green)':infraHealth>40?'var(--amber)':'var(--red)'}"></div></div>
+      <span class="text-xs text-muted">Infra Health: ${infraHealth}%</span>
+    </div>`;
+  }).join('');
+  renderZoneRadar();
+}
+
+function getMostFrequent(arr){
+  const freq={};arr.forEach(v=>{freq[v]=(freq[v]||0)+1});
+  let maxK='',maxV=0;Object.entries(freq).forEach(([k,v])=>{if(v>maxV){maxV=v;maxK=k}});return maxK;
+}
+
+function renderZoneRadar(){
+  const ctx=document.getElementById('zoneRadarChart');
+  if(chartInstances.zoneRadar)chartInstances.zoneRadar.destroy();
+  const colors=['#00e5ff','#ffab00','#ff3d5a','#b388ff','#00e676'];
+  const datasets=ZONES.map((z,i)=>{
+    const zc=complaints.filter(c=>c.zone===z);
+    return{
+      label:z,
+      data:[zc.length,zc.filter(c=>c.severity==='Critical'||c.severity==='High').length,
+        zc.filter(c=>c.status==='Resolved').length,calculateZoneMISI(z),
+        rng(40,95),rng(30,90)],
+      borderColor:colors[i],backgroundColor:colors[i]+'30',pointRadius:3,borderWidth:2
+    };
+  });
+  chartInstances.zoneRadar=new Chart(ctx,{type:'radar',data:{
+    labels:['Total Complaints','Critical/High','Resolved','Stress Index','Infra Score','Citizen Sat.'],
+    datasets
+  },options:{responsive:true,maintainAspectRatio:false,scales:{r:{ticks:{color:'#5a6a8a',backdropColor:'transparent'},grid:{color:'rgba(42,53,85,.5)'},pointLabels:{color:'#8899b8',font:{size:10}}}},plugins:{legend:{labels:{color:'#8899b8',font:{family:'DM Sans',size:10}}}}}});
+}
+
+function showZoneDetail(zone){
+  const panel=document.getElementById('zoneDetailPanel');
+  const zc=complaints.filter(c=>c.zone===zone);
+  const pending=zc.filter(c=>c.status==='Pending').length;
+  const inProg=zc.filter(c=>c.status==='In Progress').length;
+  const resolved=zc.filter(c=>c.status==='Resolved').length;
+  const topCats={};zc.forEach(c=>{topCats[c.category]=(topCats[c.category]||0)+1});
+  const sorted=Object.entries(topCats).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const misi=calculateZoneMISI(zone);
+  const reports=[
+    `${zone} Zone (${ZONE_AREAS[zone]}) currently has ${zc.length} registered complaints with ${pending} pending resolution.`,
+    `The primary area of concern is ${sorted[0]?sorted[0][0]:'N/A'} accounting for ${sorted[0]?sorted[0][1]:0} complaints.`,
+    `The zone's Municipal Infrastructure Stress Index stands at ${misi}/100, indicating ${misi>75?'critical stress levels requiring immediate intervention':misi>50?'moderate stress requiring attention':'manageable conditions'}.`,
+    `Resolution rate in this zone is ${resolved?Math.round(resolved/zc.length*100):0}%, ${resolved/zc.length>.6?'which is above':'which is below'} the city average.`,
+    `Recommended focus: ${sorted[0]?sorted[0][0]:'general maintenance'} with priority on ${zc.filter(c=>c.severity==='Critical').length} critical issues.`
+  ];
+  panel.innerHTML=`<h4 class="text-sm mb-3"><i class="fas fa-vector-square text-cyan"></i> ${zone} Zone — Detailed Report</h4>
+    <div class="grid grid-3 gap-3 mb-4">
+      <div class="sim-result"><div class="sim-value text-amber">${pending}</div><div class="sim-label">Pending</div></div>
+      <div class="sim-result"><div class="sim-value text-cyan">${inProg}</div><div class="sim-label">In Progress</div></div>
+      <div class="sim-result"><div class="sim-value text-green">${resolved}</div><div class="sim-label">Resolved</div></div>
+    </div>
+    <h5 class="text-xs text-muted mb-2" style="text-transform:uppercase;letter-spacing:1px">Top Issues</h5>
+    ${sorted.map(([cat,cnt])=>`<div class="flex justify-between items-center mb-2"><span class="text-sm">${cat}</span><span class="text-sm font-bold">${cnt}</span></div><div class="progress-bar mb-3"><div class="progress-fill" style="width:${(cnt/zc.length*100)}%;background:var(--cyan)"></div></div>`).join('')}
+    <h5 class="text-xs text-muted mb-2 mt-4" style="text-transform:uppercase;letter-spacing:1px">Zone Health Report</h5>
+    <p class="text-sm" style="line-height:1.6;color:var(--text-secondary)">${reports.join(' ')}</p>`;
+}
+
+// ===== MISI =====
+function calculateZoneMISI(zone){
+  const zc=complaints.filter(c=>c.zone===zone);
+  const total=zc.length;
+  const sevScore=zc.reduce((a,c)=>a+({Low:1,Medium:2,High:3,Critical:4}[c.severity]||1),0);
+  const unresolved=zc.filter(c=>c.status!=='Resolved').length;
+  const resRate=total?((total-unresolved)/total):1;
+  const sensorAnomaly=rng(5,25);
+  const infraAge=rng(10,35);
+  const raw=(total*1.2)+(sevScore*.8)+((1-resRate)*30)+sensorAnomaly+infraAge;
+  return Math.min(100,Math.max(0,Math.round(raw/2.5)));
+}
+
+function renderMISI(){
+  // City-wide MISI
+  const cityMISI=Math.round(ZONES.reduce((a,z)=>a+calculateZoneMISI(z),0)/ZONES.length);
+  document.getElementById('misiMainValue').textContent=cityMISI;
+  const arc=document.getElementById('misiMainArc');
+  const offset=440-(440*(cityMISI/100));
+  arc.setAttribute('stroke-dashoffset',offset);
+  arc.setAttribute('stroke',cityMISI>75?'#ff3d5a':cityMISI>50?'#ffab00':cityMISI>30?'#00e5ff':'#00e676');
+
+  // Zone gauges
+  const gaugeGrid=document.getElementById('misiZoneGauges');
+  gaugeGrid.innerHTML=ZONES.map(z=>{
+    const m=calculateZoneMISI(z);
+    const color=m>75?'#ff3d5a':m>50?'#ffab00':m>30?'#00e5ff':'#00e676';
+    const circumference=2*Math.PI*45;
+    const dashoffset=circumference-(circumference*(m/100));
+    return`<div class="card text-center">
+      <div class="gauge" style="width:100px;height:100px"><svg width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="var(--border)" stroke-width="8"/><circle cx="50" cy="50" r="45" fill="none" stroke="${color}" stroke-width="8" stroke-dasharray="${circumference}" stroke-dashoffset="${dashoffset}" stroke-linecap="round" style="transform:rotate(-90deg);transform-origin:center;transition:stroke-dashoffset .8s ease"/></svg><div class="gauge-value" style="font-size:1rem"><span>${m}</span></div></div>
+      <p class="text-xs font-bold mt-2">${z}</p>
+      <p class="text-xs text-muted">${m>75?'Critical':m>50?'Warning':m>30?'Moderate':'Normal'}</p>
+    </div>`;
+  }).join('');
+
+  // Breakdown table
+  const tbody=document.querySelector('#misiBreakdownTable tbody');
+  tbody.innerHTML=ZONES.map(z=>{
+    const zc=complaints.filter(c=>c.zone===z);
+    const m=calculateZoneMISI(z);
+    const cScore=Math.round(zc.length*1.2);
+    const sScore=Math.round(zc.reduce((a,c)=>a+({Low:1,Medium:2,High:3,Critical:4}[c.severity]||1),0)*.8);
+    const rScore=Math.round((1-(zc.filter(c=>c.status==='Resolved').length/Math.max(zc.length,1)))*30);
+    const sensor=rng(5,25);const infra=rng(10,35);
+    return`<tr><td><strong>${z}</strong></td><td>${cScore}</td><td>${sScore}</td><td>${rScore}</td><td>${sensor}</td><td>${infra}</td><td><strong style="color:${m>75?'var(--red)':m>50?'var(--amber)':'var(--green)'}">${m}</strong></td></tr>`;
+  }).join('');
+
+  // Trend chart
+  renderMISITrend();
+}
+
+function renderMISITrend(){
+  const ctx=document.getElementById('misiTrendChart');
+  if(chartInstances.misiTrend)chartInstances.misiTrend.destroy();
+  const months=['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
+  const datasets=ZONES.map((z,i)=>{
+    const colors=['#00e5ff','#ffab00','#ff3d5a','#b388ff','#00e676'];
+    const base=calculateZoneMISI(z);
+    return{label:z,data:months.map((_,j)=>Math.min(100,Math.max(0,base+rng(-15,15)))),borderColor:colors[i],tension:.4,pointRadius:2,borderWidth:2};
+  });
+  chartInstances.misiTrend=new Chart(ctx,{type:'line',data:{labels:months,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#8899b8',font:{family:'DM Sans',size:10}}}},scales:{x:{ticks:{color:'#5a6a8a'},grid:{color:'rgba(42,53,85,.5)'}},y:{min:0,max:100,ticks:{color:'#5a6a8a'},grid:{color:'rgba(42,53,85,.5)'}}}}});
+}
+
+function checkAlerts(){
+  const highStress=ZONES.filter(z=>calculateZoneMISI(z)>75);
+  const banner=document.getElementById('alertBanner');
+  if(highStress.length>0){
+    banner.style.display='flex';
+    document.getElementById('alertBannerText').textContent=`⚠ High stress alert: ${highStress.join(', ')} zone${highStress.length>1?'s':''} exceeding critical MISI threshold (>75)!`;
+  } else {
+    banner.style.display='none';
+  }
+}
+
+// ===== POLICY SIMULATION =====
+function runSimulation(){
+  const zone=document.getElementById('simZone').value;
+  const category=document.getElementById('simCategory').value;
+  const policy=document.getElementById('simPolicy').value;
+  const budget=parseInt(document.getElementById('simBudget').value);
+  const timeline=parseInt(document.getElementById('simTimeline').value);
+  const staffMul=parseInt(document.getElementById('simStaff').value)/10;
+  document.getElementById('simPlaceholder').style.display='none';
+  const output=document.getElementById('simOutput');
+  output.style.display='block';
+  output.innerHTML='<div class="loading-spinner"></div><p class="text-sm text-muted text-center mt-3">Running simulation...</p>';
+  setTimeout(()=>{
+    const budgetFactor=Math.min(budget/200,1);
+    const timeFactor=Math.min(timeline/12,1);
+    const staffFactor=Math.min(staffMul/2,1);
+    const reduction=Math.round((budgetFactor*.4+timeFactor*.3+staffFactor*.3)*rng(25,65));
+    const sdgImprove=rngF(1.5,4.5);
+    const costPerComplaint=budget>100?rngF(0.8,2.5):rngF(3,8);
+    const roi=rngF(1.2,3.8);
+    const risk=budget<30?'High':budget<100?'Medium':'Low';
+    const currentMISI=calculateZoneMISI(zone);
+    const projectedMISI=Math.max(10,currentMISI-Math.round(reduction*.6));
+    const misiColor=c=>c>75?'#ff3d5a':c>50?'#ffab00':c>30?'#00e5ff':'#00e676';
+    output.innerHTML=`
+      <div class="grid grid-3 gap-3 mb-4">
+        <div class="sim-result"><div class="sim-value text-green">-${reduction}%</div><div class="sim-label">Complaint Reduction</div></div>
+        <div class="sim-result"><div class="sim-value text-cyan">+${sdgImprove}</div><div class="sim-label">SDG Impact Score</div></div>
+        <div class="sim-result"><div class="sim-value text-amber">₹${costPerComplaint}L</div><div class="sim-label">Cost per Complaint</div></div>
+      </div>
+      <div class="grid grid-3 gap-3 mb-4">
+        <div class="sim-result"><div class="sim-value text-green">${roi}x</div><div class="sim-label">ROI Indicator</div></div>
+        <div class="sim-result"><div class="sim-value" style="color:${risk==='Low'?'var(--green)':risk==='Medium'?'var(--amber)':'var(--red)'}">${risk}</div><div class="sim-label">Risk Level</div></div>
+        <div class="sim-result"><div class="sim-value text-cyan">${timeline}mo</div><div class="sim-label">Timeline</div></div>
+      </div>
+      <h4 class="text-sm mb-3">MISI Projection: ${zone} Zone</h4>
+      <div class="flex justify-between items-center gap-4">
+        <div class="text-center flex-1">
+          <p class="text-xs text-muted mb-2">Current</p>
+          <div class="gauge" style="width:90px;height:90px"><svg width="90" height="90" viewBox="0 0 90 90"><circle cx="45" cy="45" r="38" fill="none" stroke="var(--border)" stroke-width="7"/><circle cx="45" cy="45" r="38" fill="none" stroke="${misiColor(currentMISI)}" stroke-width="7" stroke-dasharray="${2*Math.PI*38}" stroke-dashoffset="${2*Math.PI*38*(1-currentMISI/100)}" stroke-linecap="round" style="transform:rotate(-90deg);transform-origin:center"/></svg><div class="gauge-value" style="font-size:.9rem"><span>${currentMISI}</span></div></div>
+        </div>
+        <i class="fas fa-arrow-right text-cyan" style="font-size:1.5rem"></i>
+        <div class="text-center flex-1">
+          <p class="text-xs text-muted mb-2">Projected</p>
+          <div class="gauge" style="width:90px;height:90px"><svg width="90" height="90" viewBox="0 0 90 90"><circle cx="45" cy="45" r="38" fill="none" stroke="var(--border)" stroke-width="7"/><circle cx="45" cy="45" r="38" fill="none" stroke="${misiColor(projectedMISI)}" stroke-width="7" stroke-dasharray="${2*Math.PI*38}" stroke-dashoffset="${2*Math.PI*38*(1-projectedMISI/100)}" stroke-linecap="round" style="transform:rotate(-90deg);transform-origin:center"/></svg><div class="gauge-value" style="font-size:.9rem"><span>${projectedMISI}</span></div></div>
+        </div>
+      </div>
+      <div class="card mt-4" style="background:var(--bg-secondary)">
+        <h5 class="text-xs text-muted mb-2">Policy: ${policy}</h5>
+        <p class="text-sm">${zone} zone would see approximately ${reduction}% reduction in ${category} complaints over ${timeline} months. With a budget of ₹${budget>=100?(budget/100).toFixed(1)+'Cr':budget+'L'} and ${staffMul}x staff deployment, the projected ROI is ${roi}x. Risk assessment: ${risk}.</p>
+      </div>`;
+  },1500);
+}
+
+// ===== RESOURCES =====
+function renderResources(){
+  const budgetDiv=document.getElementById('budgetSliders');
+  budgetDiv.innerHTML=DEPARTMENTS.map(d=>`<div class="flex items-center gap-3 mb-3">
+    <span class="text-sm" style="width:140px">${d.name}</span>
+    <input type="range" class="dept-budget" min="10" max="200" value="${d.budget/5}" data-dept="${d.name}" style="flex:1" aria-label="${d.name} budget">
+    <span class="text-xs text-muted" style="width:60px" id="budgetVal-${d.name.replace(/\s/g,'')}">₹${d.budget}L</span>
+  </div>`).join('');
+  budgetDiv.querySelectorAll('.dept-budget').forEach(el=>{
+    el.oninput=function(){document.getElementById('budgetVal-'+this.dataset.dept.replace(/\s/g,'')).textContent='₹'+(this.value*5)+'L'};
+  });
+
+  const cards=document.getElementById('resourceCards');
+  cards.innerHTML=DEPARTMENTS.map(d=>{
+    const open=complaints.filter(c=>c.department===d.name&&c.status!=='Resolved').length;
+    const closed=complaints.filter(c=>c.department===d.name&&c.status==='Resolved').length;
+    const cap=Math.round((open/Math.max(d.staff*.25,1))*100);
+    const budgetUsed=rng(40,95);
+    const equipment=rng(55,95);
+    const efficiency=Math.min(100,Math.round((closed/Math.max(open+closed,1))*100)+rng(10,25));
+    const overloaded=cap>85;
+    return`<div class="card" style="${overloaded?'border-color:var(--red);':''}">
+      ${overloaded?'<span class="status-badge status-critical" style="position:absolute;top:8px;right:8px"><i class="fas fa-exclamation-triangle"></i> Overloaded</span>':''}
+      <h4 style="font-size:.85rem;margin-bottom:12px">${d.name}</h4>
+      <p class="text-xs text-muted mb-3">${d.fullName}</p>
+      <div class="mb-3"><span class="text-xs text-muted">Staff: ${d.staff} / ${Math.round(d.staff*1.2)} needed</span>
+        <div class="progress-bar mt-1"><div class="progress-fill" style="width:${Math.round(d.staff/(d.staff*1.2)*100)}%;background:var(--cyan)"></div></div></div>
+      <div class="mb-3"><span class="text-xs text-muted">Budget Used: ${budgetUsed}%</span>
+        <div class="progress-bar mt-1"><div class="progress-fill" style="width:${budgetUsed}%;background:${budgetUsed>85?'var(--red)':'var(--amber)'}"></div></div></div>
+      <div class="mb-3"><span class="text-xs text-muted">Capacity: ${cap}%</span>
+        <div class="progress-bar mt-1"><div class="progress-fill" style="width:${Math.min(cap,100)}%;background:${cap>85?'var(--red)':cap>60?'var(--amber)':'var(--green)'}"></div></div></div>
+      <div class="mb-3"><span class="text-xs text-muted">Equipment: ${equipment}%</span>
+        <div class="progress-bar mt-1"><div class="progress-fill" style="width:${equipment}%;background:var(--green)"></div></div></div>
+      <div class="flex justify-between items-center mt-3">
+        <span class="text-xs">Efficiency</span>
+        <span class="font-bold text-sm" style="color:${efficiency>70?'var(--green)':efficiency>40?'var(--amber)':'var(--red)'}">${efficiency}%</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function applyBudgetChanges(){showToast('Budget reallocation applied successfully. Projected resolution time improvements updated.','success');}
+
+// ===== NOTIFICATIONS =====
+function renderAdminNotifications(){
+  const list=document.getElementById('adminNotifList');
+  const notifs=[...adminNotifications].sort((a,b)=>new Date(b.time)-new Date(a.time));
+  if(!notifs.length){list.innerHTML='<p class="text-sm text-muted text-center" style="padding:40px">No notifications</p>';return;}
+  list.innerHTML=notifs.map(n=>{
+    const icon=n.type==='new'?'fa-plus-circle text-cyan':n.type==='escalation'?'fa-arrow-up text-red':'fa-clock text-amber';
+    return`<div class="inbox-item ${n.read?'':'unread'}" onclick="markAdminNotifRead('${n.id}');${n.complaintId?`viewComplaint('${n.complaintId}')`:''}" style="cursor:pointer">
+      <div class="inbox-icon" style="background:var(--bg-secondary)"><i class="fas ${icon}"></i></div>
+      <div><div class="inbox-subject">${n.message}</div><div class="inbox-preview">${n.complaintId||''}</div></div>
+      <span class="inbox-time">${timeStr(new Date(n.time))}</span>
+    </div>`;
+  }).join('');
+}
+
+function markAdminNotifRead(id){
+  const n=adminNotifications.find(x=>x.id===id);
+  if(n)n.read=true;
+  saveData();updateBadges();renderAdminNotifications();
+}
+
+// ===== CITIZEN VIEWS =====
+function renderCitizenDashboard(){
+  const total=complaints.length;
+  const resolved=complaints.filter(c=>c.status==='Resolved').length;
+  const pending=complaints.filter(c=>c.status==='Pending').length;
+  const avgRating=(complaints.filter(c=>c.rating).reduce((a,c)=>a+(c.rating||0),0)/Math.max(complaints.filter(c=>c.rating).length,1)).toFixed(1);
+  document.getElementById('citizenKPIs').innerHTML=`
+    <div class="card kpi-card"><div class="kpi-icon cyan"><i class="fas fa-clipboard-list"></i></div><div class="kpi-data"><h3>${total}</h3><p>Total Complaints</p></div></div>
+    <div class="card kpi-card"><div class="kpi-icon green"><i class="fas fa-check-circle"></i></div><div class="kpi-data"><h3>${resolved}</h3><p>Resolved</p></div></div>
+    <div class="card kpi-card"><div class="kpi-icon amber"><i class="fas fa-hourglass-half"></i></div><div class="kpi-data"><h3>${pending}</h3><p>Pending</p></div></div>
+    <div class="card kpi-card"><div class="kpi-icon purple"><i class="fas fa-star"></i></div><div class="kpi-data"><h3>${avgRating}/5</h3><p>Avg Satisfaction</p></div></div>`;
+  // Charts
+  renderCitizenTrendChart();
+  renderCitizenCategoryChart();
+  // Public complaints table
+  const recent=[...complaints].filter(c=>!c.anonymous).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,10);
+  document.querySelector('#publicComplaintsTable tbody').innerHTML=recent.map(c=>`<tr><td class="text-cyan">${c.id}</td><td>${c.title}</td><td class="text-xs">${c.category}</td><td>${c.zone}</td><td><span class="status-badge status-${c.status.toLowerCase().replace(' ','-')}">${c.status}</span></td><td class="text-xs">${dateStr(new Date(c.createdAt))}</td></tr>`).join('');
+}
+
+function renderCitizenTrendChart(){
+  const ctx=document.getElementById('citizenTrendChart');
+  if(chartInstances.citizenTrend)chartInstances.citizenTrend.destroy();
+  const labels=[];const data=[];
+  for(let i=29;i>=0;i--){const d=daysAgo(i);labels.push(d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'}));data.push(complaints.filter(c=>new Date(c.createdAt).toDateString()===d.toDateString()).length||rng(0,4));}
+  chartInstances.citizenTrend=new Chart(ctx,{type:'line',data:{labels,datasets:[{label:'Complaints',data,borderColor:'#00e5ff',backgroundColor:'rgba(0,229,255,.1)',fill:true,tension:.4,pointRadius:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#8899b8'}}},scales:{x:{ticks:{color:'#5a6a8a',maxTicksLimit:10},grid:{color:'rgba(42,53,85,.5)'}},y:{ticks:{color:'#5a6a8a'},grid:{color:'rgba(42,53,85,.5)'}}}}});
+}
+
+function renderCitizenCategoryChart(){
+  const ctx=document.getElementById('citizenCategoryChart');
+  if(chartInstances.citizenCat)chartInstances.citizenCat.destroy();
+  const cats={};complaints.forEach(c=>{cats[c.category]=(cats[c.category]||0)+1});
+  const sorted=Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  chartInstances.citizenCat=new Chart(ctx,{type:'doughnut',data:{labels:sorted.map(s=>s[0]),datasets:[{data:sorted.map(s=>s[1]),backgroundColor:['#00e5ff','#ffab00','#ff3d5a','#00e676','#b388ff','#448aff'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#8899b8',font:{size:10},boxWidth:12}}}}});
+}
+
+function renderCitizenHistory(){
+  const mine=complaints.filter(c=>c.citizenId===currentUser?.email).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  const tbody=document.querySelector('#myComplaintsTable tbody');
+  tbody.innerHTML=mine.length?mine.map(c=>`<tr><td class="text-cyan">${c.id}</td><td>${c.title}</td><td class="text-xs">${c.category}</td><td><span class="status-badge status-${c.status.toLowerCase().replace(' ','-')}">${c.status}</span></td><td class="text-xs">${dateStr(new Date(c.createdAt))}</td>
+    <td><button class="btn btn-secondary btn-sm" onclick="viewComplaint('${c.id}')"><i class="fas fa-eye"></i></button>
+    ${c.status==='Resolved'&&!c.rating?`<button class="btn btn-amber btn-sm" onclick="openFeedback('${c.id}')"><i class="fas fa-star"></i></button>`:''}</td></tr>`).join(''):'<tr><td colspan="6" class="text-center text-muted" style="padding:40px">No complaints filed yet. <a href="#" onclick="navigateTo(\'citizen-complaint\')">File one now →</a></td></tr>';
+}
+
+function renderCitizenInbox(){
+  const mine=notifications.filter(n=>n.citizenEmail===currentUser?.email).sort((a,b)=>new Date(b.time)-new Date(a.time));
+  const list=document.getElementById('citizenInboxList');
+  if(!mine.length){list.innerHTML='<p class="text-sm text-muted text-center" style="padding:40px">No messages yet</p>';return;}
+  list.innerHTML=mine.map(n=>{
+    const icon=n.type==='submitted'?'fa-paper-plane':'fa-check-circle';
+    const iconColor=n.type==='submitted'?'var(--cyan)':'var(--green)';
+    return`<div class="inbox-item ${n.read?'':'unread'}" onclick="markNotifRead('${n.id}')" style="cursor:pointer">
+      <div class="inbox-icon" style="background:${iconColor}20;color:${iconColor}"><i class="fas ${icon}"></i></div>
+      <div><div class="inbox-subject">${n.type==='submitted'?'Complaint Submitted':'Complaint Resolved'}</div><div class="inbox-preview">${n.message}</div></div>
+      <span class="inbox-time">${dateStr(new Date(n.time))}</span>
+    </div>`;
+  }).join('');
+}
+
+function markNotifRead(id){
+  const n=notifications.find(x=>x.id===id);
+  if(n){n.read=true;saveData();updateBadges();renderCitizenInbox();}
+}
+
+// ===== FEEDBACK =====
+function openFeedback(id){feedbackComplaintId=id;feedbackRating=0;closeModal('complaintModal');document.querySelectorAll('#feedbackStars i').forEach(s=>s.classList.remove('active'));openModal('feedbackModal');}
+function setRating(v){feedbackRating=v;document.querySelectorAll('#feedbackStars i').forEach((s,i)=>s.classList.toggle('active',i<v));}
+function submitFeedback(){
+  if(!feedbackRating){showToast('Please select a rating.','error');return;}
+  const c=complaints.find(x=>x.id===feedbackComplaintId);
+  if(c){c.rating=feedbackRating;c.feedback=document.getElementById('feedbackComment').value||null;saveData();}
+  closeModal('feedbackModal');showToast('Thank you for your feedback!','success');
+  document.getElementById('feedbackComment').value='';
+}
+
+// ===== EXPORT =====
+function exportData(){
+  let csv='ID,Title,Category,Zone,Severity,Status,Date,Department\n';
+  complaints.forEach(c=>{csv+=`${c.id},"${c.title}",${c.category},${c.zone},${c.severity},${c.status},${dateStr(new Date(c.createdAt))},${c.department}\n`});
+  const blob=new Blob([csv],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='smart_city_complaints_export.csv';a.click();
+  URL.revokeObjectURL(url);
+  showToast('CSV export downloaded successfully.','success');
+}
+
+// ===== INIT =====
+function initDashboard(){
+  generateMockData();
+  initSensorData();
+  populateCategoryFilter();
+  // Live sensor updates
+  setInterval(()=>{updateSensorData();refreshSensorDisplay();},4000);
+  // Load theme
+  const savedTheme=localStorage.getItem('sc_theme');
+  if(savedTheme){document.documentElement.dataset.theme=savedTheme;document.getElementById('themeIcon').className=savedTheme==='light'?'fas fa-sun':'fas fa-moon';}
+}
+
+// Auto-check auth on load
+window.addEventListener('DOMContentLoaded',()=>{
+  generateMockData();
+  checkAuth();
+});
+</script>
+</body>
+</html>
